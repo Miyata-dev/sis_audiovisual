@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique // Ej: ADMIN, PRESIDENTE, CONSEJERO
+  users User[]
+}
+
+model User {
+  id               Int               @id @default(autoincrement())
+  email            String            @unique
+  password         String            // Contraseña hasheada (ej. con bcrypt)
+  name             String
+  roleId           Int
+  role             Role              @relation(fields: [roleId], references: [id])
+  votes            Vote[]            
+  attendances      Attendance[]      
+  speakingRequests SpeakingRequest[]
+}
+
+model Session {
+  id               Int               @id @default(autoincrement())
+  title            String
+  date             DateTime          @default(now())
+  status           String            // Ej: PROGRAMADA, EN_CURSO, FINALIZADA
+  attendances      Attendance[]
+  votings          VotingEvent[]
+  mediaFiles       MediaFile[]
+  speakingRequests SpeakingRequest[]
+}
+
+model Attendance {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  sessionId  Int
+  timeJoined DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  session    Session  @relation(fields: [sessionId], references: [id])
+
+  @@unique([userId, sessionId]) // Evita que un usuario registre asistencia dos veces
+}
+
+model VotingEvent {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  sessionId   Int
+  status      String   // ABIERTA, CERRADA
+  session     Session  @relation(fields: [sessionId], references: [id])
+  votes       Vote[]   //enerar reportes
+}
+
+
+model Vote {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  votingEventId Int
+  option        String      // A FAVOR, EN CONTRA, ABSTENCION
+  timestamp     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id])
+  votingEvent   VotingEvent @relation(fields: [votingEventId], references: [id])
+
+  @@unique([userId, votingEventId]) 
+}
+
+model SpeakingRequest {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  sessionId   Int
+  status      String   // Ej: PENDIENTE, HABLANDO, FINALIZADO
+  requestedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  session     Session  @relation(fields: [sessionId], references: [id])
+}
+
+model MediaFile {
+  id          Int      @id @default(autoincrement())
+  filename    String
+  fileType    String   
+  storageUrl  String   
+  sessionId   Int
+  uploadedAt  DateTime @default(now())
+  session     Session  @relation(fields: [sessionId], references: [id])
+}
