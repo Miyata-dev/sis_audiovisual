@@ -19,7 +19,7 @@ const Navbar = () => {
       {/* Sección Izquierda: Logo y Título */}
       <div className="flex items-center gap-4">
         <img 
-          src="https://via.placeholder.com/60x40?text=Logo" 
+          src="/logo.png" 
           alt="Logo Gobierno Regional" 
           className="h-10 w-auto object-contain"
         />
