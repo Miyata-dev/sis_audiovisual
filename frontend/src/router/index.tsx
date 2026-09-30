@@ -1,7 +1,10 @@
 import { createBrowserRouter } from 'react-router-dom';
 
-// Importa tus componentes y layouts
 import MainLayout from '../layouts/MainLayout';
+import SalaAudioVisual from '../pages/SalaAudiovisual';
+import Login from '../pages/Login';
+import SalaSesiones from '../pages/SalaSesiones';
+import SesionEnCurso from '../pages/SesionEnCurso';
 import { ROUTES } from '../constants/router/routes';
 
 export const router = createBrowserRouter([
@@ -10,19 +13,19 @@ export const router = createBrowserRouter([
     children: [
       { 
         path: ROUTES.HOME.path, 
-        element: <h1>Sesiones</h1>
+        element: <SalaSesiones />
       },
       { 
         path: ROUTES.SALA_AUDIOVISUAL.path, 
-        element: <h1>Sala audiovisual</h1>
+        element: <SalaAudioVisual />
       },
       { 
         path: ROUTES.SESION_EN_CURSO.path, 
-        element: <h1>Sesión en curso</h1>
+        element: <SesionEnCurso />
       },
       { 
         path: ROUTES.LOGIN.path, 
-        element: <h1>Login</h1>
+        element: <Login />
       },
     ],
   },
