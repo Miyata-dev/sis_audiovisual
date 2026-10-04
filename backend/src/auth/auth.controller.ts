@@ -1,9 +1,14 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { AuthService } from './auth.service.js';
+import { LoginDto } from './dto/login.dto.js';
 
-@Controller('login')
+@Controller('auth') // Ruta base: /api/auth
 export class AuthController {
-  @Post()
-  login() {
-    return { message: 'This is the /api/login endpoint' };
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('login') 
+  @HttpCode(HttpStatus.OK) 
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 }
