@@ -1,6 +1,8 @@
+import { LandingHero } from "../components/LandingHero/LandingHero";
+
 const SalaSesiones = () => {
   return (
-    <h1>Sesiones</h1>
+    <LandingHero />
   )
 }
 
