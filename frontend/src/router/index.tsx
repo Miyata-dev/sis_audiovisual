@@ -6,6 +6,7 @@ import Login from '../pages/Login';
 import SalaSesiones from '../pages/SalaSesiones';
 import SesionEnCurso from '../pages/SesionEnCurso';
 import { ROUTES } from '../constants/router/routes';
+import SalaHistorialReunionPage from '../pages/SalaHistorialReunionPage';
 
 export const router = createBrowserRouter([
   {
@@ -14,6 +15,10 @@ export const router = createBrowserRouter([
       { 
         path: ROUTES.HOME.path, 
         element: <SalaSesiones />
+      },
+      { 
+        path: ROUTES.HISTORIAL_REUNION.path, 
+        element: <SalaHistorialReunionPage />
       },
       { 
         path: ROUTES.SALA_AUDIOVISUAL.path, 
