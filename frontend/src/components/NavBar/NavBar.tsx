@@ -11,7 +11,7 @@ const Navbar = () => {
     { name: 'Bienvenido', path: ROUTES.HOME.path },
     { name: 'Sala Audiovisual', path: ROUTES.SALA_AUDIOVISUAL.path },
     { name: 'Sesión en Curso', path: ROUTES.SESION_EN_CURSO.path },
-    { name: 'Login', path: ROUTES.LOGIN.path },
+    { name: 'Historial de sesiones', path: ROUTES.HISTORIAL_REUNION.path },
   ];
 
   return (
