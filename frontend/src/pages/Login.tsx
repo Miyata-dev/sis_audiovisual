@@ -1,6 +1,10 @@
+import { LoginForm } from "../components/LoginForm/LoginForm";
+
 const Login = () => {
   return (
-    <h1>Login</h1>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <LoginForm />
+    </div>
   )
 }
 
