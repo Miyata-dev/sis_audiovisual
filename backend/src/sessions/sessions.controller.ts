@@ -32,12 +32,12 @@ export class SessionsController {
     const videoUrl = `/uploads/${file.filename}`;
     const filePath = file.path; // Ruta donde se guardo el video 
 
-    // Extraemos la duracion en segundos usando ffprobe
+    // se extrae la duracion en segundos usando ffprobe
     const durationSeconds = await new Promise<number>((resolve) => {
       ffmpeg.ffprobe(filePath, (err, metadata) => {
         if (err || !metadata || !metadata.format || !metadata.format.duration) {
           console.error("Error al leer el video:", err);
-          resolve(0); // Si falla, devolve 0
+          resolve(0); // Si falla, devuolve 0
         } else {
           resolve(Number(metadata.format.duration));
         }
@@ -59,5 +59,52 @@ export class SessionsController {
 
     // se actualiza la URL y la Duracion calculada en Prisma
     return this.sessionsService.updateVideoUrl(Number(id), videoUrl, durationStr);
+  }
+  @Post(':id/upload-acta')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, callback) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const ext = extname(file.originalname); // Extrae si es .txt, .pdf o .docx
+      callback(null, `acta-${uniqueSuffix}${ext}`);
+      },
+    }),
+  }))
+  async uploadActa(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+    const actaUrl = `/uploads/${file.filename}`;
+    
+    return this.sessionsService.updateActaUrl(Number(id), actaUrl);
+  }
+@Post(':id/upload-transcription')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, callback) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = extname(file.originalname);
+        callback(null, `transcription-${uniqueSuffix}${ext}`); 
+      },
+    }),
+  }))
+  async uploadTranscription(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+    const transcriptionUrl = `/uploads/${file.filename}`;
+    
+    return this.sessionsService.updateTranscriptionUrl(Number(id), transcriptionUrl);
+  }
+  @Post(':id/upload-thumbnail')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, callback) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = extname(file.originalname); //  extensiones como .jpg o .png
+        callback(null, `thumbnail-${uniqueSuffix}${ext}`); 
+      },
+    }),
+  }))
+  async uploadThumbnail(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+    const thumbnailUrl = `/uploads/${file.filename}`;
+    return this.sessionsService.updateThumbnailUrl(Number(id), thumbnailUrl);
   }
 }
