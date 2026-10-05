@@ -6,7 +6,7 @@ import { User } from 'lucide-react';
 import axios from 'axios';
 
 const loginSchema = z.object({
-  username: z.string().min(1, 'El usuario es requerido'),
+  email: z.string().email('El email no es válido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
@@ -55,12 +55,12 @@ export const LoginForm = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <input
-            {...register('username')}
-            placeholder="Username"
+            {...register('email')}
+            placeholder="email"
             className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
           />
-          {errors.username && (
-            <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
           )}
         </div>
 
