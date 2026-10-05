@@ -7,85 +7,89 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Role {
-  id    Int    @id @default(autoincrement())
-  name  String @unique // Ej: ADMIN, PRESIDENTE, CONSEJERO
-  users User[]
-}
-
-model User {
-  id               Int               @id @default(autoincrement())
-  email            String            @unique
-  password         String            // Contraseña hasheada (ej. con bcrypt)
-  name             String
-  roleId           Int
-  role             Role              @relation(fields: [roleId], references: [id])
-  votes            Vote[]            
-  attendances      Attendance[]      
-  speakingRequests SpeakingRequest[]
-}
-
-model Session {
-  id               Int               @id @default(autoincrement())
-  title            String
-  date             DateTime          @default(now())
-  status           String            // Ej: PROGRAMADA, EN_CURSO, FINALIZADA
-  attendances      Attendance[]
-  votings          VotingEvent[]
-  mediaFiles       MediaFile[]
-  speakingRequests SpeakingRequest[]
-}
-
 model Attendance {
   id         Int      @id @default(autoincrement())
   userId     Int
   sessionId  Int
   timeJoined DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
-  session    Session  @relation(fields: [sessionId], references: [id])
+  Session    Session  @relation(fields: [sessionId], references: [id])
+  User       User     @relation(fields: [userId], references: [id])
 
-  @@unique([userId, sessionId]) // Evita que un usuario registre asistencia dos veces
+  @@unique([userId, sessionId])
 }
 
-model VotingEvent {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  sessionId   Int
-  status      String   // ABIERTA, CERRADA
-  session     Session  @relation(fields: [sessionId], references: [id])
-  votes       Vote[]   //enerar reportes
+model MediaFile {
+  id         Int      @id @default(autoincrement())
+  filename   String
+  fileType   String
+  storageUrl String
+  sessionId  Int
+  uploadedAt DateTime @default(now())
+  Session    Session  @relation(fields: [sessionId], references: [id])
 }
 
+model Role {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  User User[]
+}
 
-model Vote {
-  id            Int         @id @default(autoincrement())
-  userId        Int
-  votingEventId Int
-  option        String      // A FAVOR, EN CONTRA, ABSTENCION
-  timestamp     DateTime    @default(now())
-  user          User        @relation(fields: [userId], references: [id])
-  votingEvent   VotingEvent @relation(fields: [votingEventId], references: [id])
-
-  @@unique([userId, votingEventId]) 
+model Session {
+  id              Int               @id @default(autoincrement())
+  title           String
+  date            DateTime          @default(now())
+  status          String
+  theme           String?
+  duration        String?
+  videoUrl        String?
+  thumbnailUrl    String?
+  actaUrl         String?
+  Attendance      Attendance[]
+  MediaFile       MediaFile[]
+  SpeakingRequest SpeakingRequest[]
+  VotingEvent     VotingEvent[]
 }
 
 model SpeakingRequest {
   id          Int      @id @default(autoincrement())
   userId      Int
   sessionId   Int
-  status      String   // Ej: PENDIENTE, HABLANDO, FINALIZADO
+  status      String
   requestedAt DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
-  session     Session  @relation(fields: [sessionId], references: [id])
+  Session     Session  @relation(fields: [sessionId], references: [id])
+  User        User     @relation(fields: [userId], references: [id])
 }
 
-model MediaFile {
-  id          Int      @id @default(autoincrement())
-  filename    String
-  fileType    String   
-  storageUrl  String   
+model User {
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  password        String
+  name            String
+  roleId          Int
+  Attendance      Attendance[]
+  SpeakingRequest SpeakingRequest[]
+  Role            Role              @relation(fields: [roleId], references: [id])
+  Vote            Vote[]
+}
+
+model Vote {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  votingEventId Int
+  option        String
+  timestamp     DateTime    @default(now())
+  User          User        @relation(fields: [userId], references: [id])
+  VotingEvent   VotingEvent @relation(fields: [votingEventId], references: [id])
+
+  @@unique([userId, votingEventId])
+}
+
+model VotingEvent {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String?
   sessionId   Int
-  uploadedAt  DateTime @default(now())
-  session     Session  @relation(fields: [sessionId], references: [id])
+  status      String
+  Vote        Vote[]
+  Session     Session @relation(fields: [sessionId], references: [id])
 }
