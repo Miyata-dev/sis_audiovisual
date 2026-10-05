@@ -4,7 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 import SalaAudioVisual from '../pages/SalaAudiovisual';
 import Login from '../pages/Login';
 import SalaSesiones from '../pages/SalaSesiones';
-import SesionEnCurso from '../pages/SesionEnCurso';
+import SesionEnCurso from '../pages/SalaPanelConsejoPage';
 import { ROUTES } from '../constants/router/routes';
 import SalaHistorialReunionPage from '../pages/SalaHistorialReunionPage';
 

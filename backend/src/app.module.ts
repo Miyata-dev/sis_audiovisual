@@ -5,15 +5,17 @@ import { AuthModule } from './auth/auth.module.js';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { SessionsModule } from './sessions/sessions.module.js';
-
+import { VotesModule } from './votes/votes.module.js'; 
 
 @Module({
-  imports: [AuthModule, 
+  imports: [
+    AuthModule, 
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
-  }), 
-  SessionsModule
+    }), 
+    SessionsModule,
+    VotesModule 
   ],
   controllers: [AppController],
   providers: [AppService],
