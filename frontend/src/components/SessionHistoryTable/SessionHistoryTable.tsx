@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext'; 
 
 interface Session {
   id: number;
@@ -13,9 +14,15 @@ interface Session {
   transcriptionUrl?: string;
 }
 
-export default function SessionHistoryTable() {
+interface Props {
+  onManageFiles: (sessionId: number) => void;
+}
+
+export default function SessionHistoryTable({ onManageFiles }: Props) {
   const [sesiones, setSesiones] = useState<Session[]>([]);
   const [cargando, setCargando] = useState(true);
+  
+  const { user } = useAuth();
 
   const baseUrl = '';
 
@@ -131,7 +138,19 @@ export default function SessionHistoryTable() {
 
                 {/* Botones */}
                 <div className="flex flex-col items-end gap-2 md:ml-auto justify-center">
-                  {/* Video */}
+                  
+                  {user?.role === 'ADMIN' && (
+                    <button
+                      onClick={() => {
+                        console.log(`Gestionando archivos para la sesión con ID: ${session.id}`);
+                        onManageFiles(session.id);
+                      }}
+                      className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 bg-blue-600 rounded text-sm text-white font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Gestionar Archivos
+                    </button>
+                  )}
+
                   {session.videoUrl ? (
                     <a
                       href={`${baseUrl}${session.videoUrl}`}
@@ -150,7 +169,6 @@ export default function SessionHistoryTable() {
                     </button>
                   )}
 
-                  {/* Transcripción */}
                   {session.transcriptionUrl ? (
                     <a
                       href={`${baseUrl}${session.transcriptionUrl}`}

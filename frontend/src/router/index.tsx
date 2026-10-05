@@ -60,7 +60,7 @@ export const router = createBrowserRouter([
           { 
             path: ROUTES.SALA_AUDIOVISUAL.path, 
             element: <SalaAudioVisual /> 
-          },
+          }
         ],
       },
     ],
