@@ -35,19 +35,20 @@ model Role {
 }
 
 model Session {
-  id              Int               @id @default(autoincrement())
-  title           String
-  date            DateTime          @default(now())
-  status          String
-  theme           String?
-  duration        String?
-  videoUrl        String?
-  thumbnailUrl    String?
-  actaUrl         String?
-  Attendance      Attendance[]
-  MediaFile       MediaFile[]
-  SpeakingRequest SpeakingRequest[]
-  VotingEvent     VotingEvent[]
+  id               Int               @id @default(autoincrement())
+  title            String
+  date             DateTime          @default(now())
+  status           String
+  theme            String?
+  duration         String?
+  videoUrl         String?
+  thumbnailUrl     String?
+  actaUrl          String?
+  transcriptionUrl String?
+  Attendance       Attendance[]
+  MediaFile        MediaFile[]
+  SpeakingRequest  SpeakingRequest[]
+  VotingEvent      VotingEvent[]
 }
 
 model SpeakingRequest {

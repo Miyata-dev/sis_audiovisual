@@ -10,8 +10,8 @@ import { SessionsModule } from './sessions/sessions.module.js';
 @Module({
   imports: [AuthModule, 
     ServeStaticModule.forRoot({
-    rootPath: join(process.cwd(), 'uploads'),
-    serveRoot: '/uploads',
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
   }), 
   SessionsModule
   ],
