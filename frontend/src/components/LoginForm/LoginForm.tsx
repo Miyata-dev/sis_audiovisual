@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { User } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
+import { LOCAL_STORAGE_KEYS } from '../../constants/localStorage/keys';
 
 const loginSchema = z.object({
   email: z.string().email('El email no es válido'),
@@ -15,6 +17,8 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+
+  const { login } = useAuth();
 
   const {
     register,
@@ -32,7 +36,10 @@ export const LoginForm = () => {
       const response = await axios.post('api/auth/login', data);
       
       console.log('Login exitoso:', response.data);
-      
+
+      localStorage.setItem(LOCAL_STORAGE_KEYS.TOKEN, response.data.token);
+      login(response.data.user);
+
     } catch (error: any) {
       setServerError(error.response?.data?.message || 'Error al iniciar sesión');
     } finally {
