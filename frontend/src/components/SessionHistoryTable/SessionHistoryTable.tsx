@@ -17,7 +17,7 @@ export default function SessionHistoryTable() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/sessions/history')
+    fetch('/api/sessions/history')
       .then((res) => res.json())
       .then((data) => {
         setSesiones(data);
