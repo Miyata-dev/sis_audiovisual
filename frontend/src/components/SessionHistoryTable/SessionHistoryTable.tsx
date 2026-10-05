@@ -17,7 +17,7 @@ export default function SessionHistoryTable() {
   const [sesiones, setSesiones] = useState<Session[]>([]);
   const [cargando, setCargando] = useState(true);
 
-  const baseUrl = import.meta.env.DEV ? 'http://localhost:3000' : '';
+  const baseUrl = '';
 
   useEffect(() => {
     fetch(`${baseUrl}/api/sessions/history`)
@@ -30,7 +30,7 @@ export default function SessionHistoryTable() {
         console.error('Error al cargar sesiones:', error);
         setCargando(false);
       });
-  }, [baseUrl]);
+  }, []);
 
   if (cargando) {
     return <div className="p-6 text-gray-500">Cargando historial de sesiones...</div>;
