@@ -13,6 +13,7 @@ const Navbar = () => {
     { name: 'Sesión en Curso', path: ROUTES.SESION_EN_CURSO.path, roles: ['ADMIN', 'CONSEJERO','PRESIDENTE'] },
     { name: 'Panel de Control', path: '/panel-presidente', roles: ['ADMIN', 'PRESIDENTE'] },
     { name: 'Historial de sesiones', path: ROUTES.HISTORIAL_REUNION.path, roles: ['ADMIN', 'CONSEJERO','PRESIDENTE'] },
+    { name: 'Registrar Usuario', path: ROUTES.REGISTER.path, roles: ['ADMIN'] }, 
   ];
 
   const filteredItems = navItems.filter(item => {

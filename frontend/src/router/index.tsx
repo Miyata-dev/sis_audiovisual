@@ -9,6 +9,7 @@ import SalaAudioVisual from '../pages/SalaAudiovisual';
 import { ProtectedRoute } from '../components/protectedRoute/ProtectedRoute';
 import { PublicRoute } from '../components/publicRoute/PublicRoute';
 import PanelPresidente from "../components/PanelPresidente/PanelPresidente.tsx";
+import Register from '../pages/Register.tsx';
 
 export const router = createBrowserRouter([
   {
@@ -44,6 +45,20 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  { //este solo lo ve el admin 
+    element: <ProtectedRoute allowedRoles={['ADMIN']} />, 
+    children: [
+      {
+        element: <MainLayout />,
+        children: [
+          {
+            path: ROUTES.REGISTER.path, 
+            element: <Register />,
+          },
+        ]
+      }
+    ]
+  },
   {
     // PROTECCIÓN DE ROLES: Solo Admin y Presidente pueden ver estas vistas
     element: <ProtectedRoute allowedRoles={['ADMIN', 'PRESIDENTE']} />, 
@@ -58,7 +73,7 @@ export const router = createBrowserRouter([
           { 
             path: '/panel-presidente', 
             element: <PanelPresidente /> 
-          }
+          },
         ],
       },
     ],

@@ -1,6 +1,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
+import { RegisterDto } from './dto/register.dto.js';
 
 @Controller('auth') // Ruta base: /api/auth
 export class AuthController {
@@ -11,5 +12,11 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto) {
     console.log('BODY RECIBIDO:', loginDto); // Log del cuerpo recibido
     return this.authService.login(loginDto);
+  }
+
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
   }
 }
