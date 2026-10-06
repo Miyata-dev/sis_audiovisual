@@ -139,7 +139,7 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
                 {/* Botones */}
                 <div className="flex flex-col items-end gap-2 md:ml-auto justify-center">
                   
-                  {user?.role === 'ADMIN' && (
+                  {user?.role === 'ADMIN' || user?.role === 'PRESIDENTE' && (
                     <button
                       onClick={() => {
                         console.log(`Gestionando archivos para la sesión con ID: ${session.id}`);

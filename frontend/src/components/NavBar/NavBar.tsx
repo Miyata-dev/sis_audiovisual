@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/router/routes';
-import { useAuth } from '../../contexts/AuthContext'; // Asegura la ruta correcta
+import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -9,7 +9,7 @@ const Navbar = () => {
 
   const navItems = [
     { name: 'Bienvenido', path: ROUTES.HOME.path, roles: ['ADMIN', 'CONSEJERO','PRESIDENTE'] },
-    { name: 'Sala Audiovisual', path: ROUTES.SALA_AUDIOVISUAL.path, roles: ['ADMIN'] },
+    { name: 'Sala Audiovisual', path: ROUTES.SALA_AUDIOVISUAL.path, roles: ['ADMIN', 'CONSEJERO','PRESIDENTE'] },
     { name: 'Sesión en Curso', path: ROUTES.SESION_EN_CURSO.path, roles: ['ADMIN', 'CONSEJERO','PRESIDENTE'] },
     { name: 'Panel de Control', path: '/panel-presidente', roles: ['ADMIN', 'PRESIDENTE'] },
     { name: 'Historial de sesiones', path: ROUTES.HISTORIAL_REUNION.path, roles: ['ADMIN', 'CONSEJERO','PRESIDENTE'] },

@@ -18,6 +18,7 @@ export class VotesController {
   ) {
     return this.votesService.checkUserVote(Number(userId), Number(votingEventId));
   }
+  
   // Ruta para verificar asistencia y palabra al recargar
   @Get('user-status')
   async getUserStatus(
@@ -26,11 +27,18 @@ export class VotesController {
   ) {
     return this.votesService.getUserSessionStatus(Number(userId), Number(sessionId));
   }
+  
   @Get('dashboard/live')
-  async getLiveDashboard() {
-    return this.votesService.getLiveDashboard();
+  async getLiveDashboard(@Query('sessionId') sessionId?: string) {
+    const id = sessionId && sessionId !== 'nueva' ? parseInt(sessionId) : undefined;
+    return this.votesService.getLiveDashboard(id);
   }
-
+  
+  @Get('sessions')
+  async getSessions() {
+    return this.votesService.getSessions();
+  }
+  
   @Post()
   async emitirVoto(
     @Body('userId') userId: number,
@@ -55,6 +63,7 @@ export class VotesController {
   ) {
     return this.votesService.solicitarPalabra(userId, sessionId);
   }
+  
   @Post('speak/cancel')
   async cancelarPalabra(
     @Body('userId') userId: number,
@@ -62,10 +71,12 @@ export class VotesController {
   ) {
     return this.votesService.cancelarPalabra(userId, sessionId);
   }
+  
   @Post('close')
   async cerrarVotacion(@Body('votingEventId') votingEventId: number) {
     return this.votesService.cerrarVotacion(votingEventId);
   }
+  
   @Post('speak/grant')
   async otorgarPalabra(@Body('solicitudId') solicitudId: number) {
     return this.votesService.otorgarPalabra(solicitudId);
@@ -74,5 +85,26 @@ export class VotesController {
   @Post('speak/end')
   async terminarPalabra(@Body('solicitudId') solicitudId: number) {
     return this.votesService.terminarPalabra(solicitudId);
+  }
+  
+  @Post('create')
+  async crearVotacion(
+    @Body('title') title: string,
+    @Body('sessionId') sessionId: number,
+  ) {
+    return this.votesService.crearVotacion(title, sessionId || 3);
+  }
+  
+  @Post('sessions/create')
+  async createSession(
+    @Body('title') title: string,
+    @Body('theme') theme: string 
+  ) {
+    return this.votesService.createSession(title, theme);
+  }
+
+  @Post('sessions/close')
+  async finalizarSesionCompleta(@Body('sessionId') sessionId: number) {
+    return this.votesService.finalizarSesionCompleta(sessionId);
   }
 }
