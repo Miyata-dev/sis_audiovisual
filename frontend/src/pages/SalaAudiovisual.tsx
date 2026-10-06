@@ -1,13 +1,21 @@
+import { useState } from 'react';
 import { VideoPlayer } from '../components/VideoPlayer/VideoPlayer';
-import { PreviousSession } from '../components/PreviousSeassion/PreviousSeassion';
+import { LiveStreamPlayer } from '../components/LiveStreamPlayer/LiveStreamPlayer';
 
 const SalaAudioVisual = () => {
+  const [isLive, setIsLive] = useState(true); 
+  
+  const fakeStreamUrl = '/api/streams/sesion-en-vivo.mp4';
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 flex flex-col items-center">
-      <VideoPlayer />
-      <PreviousSession />
+      {isLive ? (
+        <LiveStreamPlayer streamUrl={fakeStreamUrl} />
+      ) : (
+        <VideoPlayer />
+      )}
     </div>
-  )
-}
+  );
+};
 
 export default SalaAudioVisual;
