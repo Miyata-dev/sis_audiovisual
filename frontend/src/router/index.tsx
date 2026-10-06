@@ -8,6 +8,7 @@ import SalaHistorialReunionPage from '../pages/SalaHistorialReunionPage';
 import SalaAudioVisual from '../pages/SalaAudiovisual';
 import { ProtectedRoute } from '../components/protectedRoute/ProtectedRoute';
 import { PublicRoute } from '../components/publicRoute/PublicRoute';
+import PanelPresidente from "../components/PanelPresidente/PanelPresidente.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -21,7 +22,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    // Rutas accesibles para CUALQUIER usuario logueado
+    // Rutas accesibles para CUALQUIER usuario logueado (Consejeros)
     element: <ProtectedRoute />,
     children: [
       {
@@ -44,7 +45,8 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <ProtectedRoute allowedRoles={['ADMIN']} />, 
+    // PROTECCIÓN DE ROLES: Solo Admin y Presidente pueden ver estas vistas
+    element: <ProtectedRoute allowedRoles={['ADMIN', 'PRESIDENTE']} />, 
     children: [
       {
         element: <MainLayout />,
@@ -52,6 +54,10 @@ export const router = createBrowserRouter([
           { 
             path: ROUTES.SALA_AUDIOVISUAL.path, 
             element: <SalaAudioVisual /> 
+          },
+          { 
+            path: '/panel-presidente', 
+            element: <PanelPresidente /> 
           }
         ],
       },

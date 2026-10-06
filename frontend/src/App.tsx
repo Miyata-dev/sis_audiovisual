@@ -3,7 +3,6 @@ import { router } from './router';
 import { useEffect } from 'react';
 import { backendURL } from './constants/api/backendURL';
 import { AuthProvider } from './contexts/AuthContext';
-
 const App = () => {
   useEffect(() => {
     fetch(backendURL)

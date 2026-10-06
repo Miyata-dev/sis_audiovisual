@@ -8,10 +8,11 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const navItems = [
-    { name: 'Bienvenido', path: ROUTES.HOME.path, roles: ['ADMIN', 'COMUN'] },
+    { name: 'Bienvenido', path: ROUTES.HOME.path, roles: ['ADMIN', 'CONSEJERO','PRESIDENTE'] },
     { name: 'Sala Audiovisual', path: ROUTES.SALA_AUDIOVISUAL.path, roles: ['ADMIN'] },
-    { name: 'Sesión en Curso', path: ROUTES.SESION_EN_CURSO.path, roles: ['ADMIN', 'COMUN'] },
-    { name: 'Historial de sesiones', path: ROUTES.HISTORIAL_REUNION.path, roles: ['ADMIN', 'COMUN'] },
+    { name: 'Sesión en Curso', path: ROUTES.SESION_EN_CURSO.path, roles: ['ADMIN', 'CONSEJERO','PRESIDENTE'] },
+    { name: 'Panel de Control', path: '/panel-presidente', roles: ['ADMIN', 'PRESIDENTE'] },
+    { name: 'Historial de sesiones', path: ROUTES.HISTORIAL_REUNION.path, roles: ['ADMIN', 'CONSEJERO','PRESIDENTE'] },
   ];
 
   const filteredItems = navItems.filter(item => {
@@ -47,7 +48,7 @@ const Navbar = () => {
                   className={({ isActive }) =>
                     `transition-colors hover:text-[#1b6b2e] ${
                       isActive ? 'text-[#1b6b2e] font-semibold' : 'text-gray-700'
-                    }`
+                    } ${item.name === 'Panel de Control' ? 'bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800 px-3 py-1.5 rounded-md font-medium border border-red-200' : ''}`
                   }
                 >
                   {item.name}
