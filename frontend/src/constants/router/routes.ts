@@ -4,4 +4,5 @@ export const ROUTES = {
   SESION_EN_CURSO: { path: '/sesion-en-curso' },
   HISTORIAL_REUNION: { path: '/historial-reunion' },
   LOGIN: { path: '/login' },
+  REGISTER: { path: '/register' },
 };
