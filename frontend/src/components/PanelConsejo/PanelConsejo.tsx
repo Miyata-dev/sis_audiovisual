@@ -1,11 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+
+type VotingEvent = {
+  id: number | string;
+  title: string;
+};
 
 export default function PanelConsejo() {
+  const { user } = useAuth(); 
   const [presente, setPresente] = useState(true);
   const [votoSeleccionado, setVotoSeleccionado] = useState<string | null>(null);
+  const [eventoActivo, setEventoActivo] = useState<VotingEvent | null>(null); 
+  
+  // NUEVOS ESTADOS
+  const [yaVoto, setYaVoto] = useState(false);
+  const [votoRegistrado, setVotoRegistrado] = useState<string | null>(null);
+
+  // Buscar la votación activa al cargar el componente
+  useEffect(() => {
+    const cargarEvento = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/votes/active');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.id) {
+            setEventoActivo(data);
+            
+            // NUEVO: Si hay usuario, consultamos si ya emitió su voto
+            if (user?.id) {
+              const checkRes = await fetch(`http://localhost:3000/api/votes/check?userId=${user.id}&votingEventId=${data.id}`);
+              if (checkRes.ok) {
+                const checkData = await checkRes.json();
+                if (checkData.hasVoted) {
+                  setYaVoto(true);
+                  setVotoRegistrado(checkData.option);
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error al cargar la votación activa:', error);
+      }
+    };
+    cargarEvento();
+  }, [user]); // Se agrega 'user' a las dependencias
 
   const enviarVoto = async () => {
-    if (!votoSeleccionado) return;
+    if (!votoSeleccionado || !user || !eventoActivo) {
+      alert('Error: Faltan datos para procesar el voto o no hay votación activa.');
+      return;
+    }
 
     try {
       const response = await fetch('http://localhost:3000/api/votes', {
@@ -14,14 +59,16 @@ export default function PanelConsejo() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: 1, // ID temporal 
-          votingEventId: 1, 
+          userId: user.id, 
+          votingEventId: eventoActivo.id,
           option: votoSeleccionado,
         }),
       });
 
       if (response.ok) {
-        alert(`Tu voto "${votoSeleccionado}" ha sido registrado correctamente.`);
+        // Cambiamos la vista inmediatamente tras votar con éxito
+        setYaVoto(true);
+        setVotoRegistrado(votoSeleccionado);
       } else {
         const errorData = await response.json();
         alert(`Error al votar: ${errorData.message}`);
@@ -138,37 +185,55 @@ export default function PanelConsejo() {
         {/* Columna Derecha: Sistema de Votación */}
         <div className="bg-[#f8f9fa] border border-gray-300 rounded-sm p-6 flex flex-col h-full">
           <div className="bg-[#d5d5d5] p-4 rounded-sm mb-auto">
-            <h3 className="text-lg font-semibold text-gray-800">Presupuesto 2026</h3>
+            <h3 className="text-lg font-semibold text-gray-800">
+              {eventoActivo ? eventoActivo.title : 'Esperando a que inicie una votación...'}
+            </h3>
           </div>
           
-          <div className="mt-8 mb-6 grid grid-cols-3 gap-3">
-            <button 
-              onClick={() => setVotoSeleccionado('favor')}
-              className={`py-3 rounded font-medium transition-all ${votoSeleccionado === 'favor' ? 'bg-[#7bc57e] text-white shadow-inner' : 'bg-[#81c784] text-white hover:bg-[#7bc57e]'}`}
-            >
-              A favor
-            </button>
-            <button 
-              onClick={() => setVotoSeleccionado('contra')}
-              className={`py-3 rounded font-medium transition-all ${votoSeleccionado === 'contra' ? 'bg-[#d32f2f] text-white shadow-inner' : 'bg-[#e53935] text-white hover:bg-[#d32f2f]'}`}
-            >
-              En contra
-            </button>
-            <button 
-              onClick={() => setVotoSeleccionado('abstencion')}
-              className={`py-3 rounded font-medium transition-all ${votoSeleccionado === 'abstencion' ? 'bg-[#78909c] text-white shadow-inner' : 'bg-[#90a4ae] text-white hover:bg-[#78909c]'}`}
-            >
-              Abstención
-            </button>
-          </div>
+          {/* NUEVO: Renderizado condicional basado en si el usuario ya votó */}
+          {yaVoto ? (
+            <div className="flex flex-col items-center justify-center mt-8 mb-6 bg-[#e8f5e9] border border-[#a5d6a7] p-6 rounded text-center h-full">
+              <svg className="w-12 h-12 text-[#4CAF50] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <h4 className="text-lg font-bold text-gray-800">Voto emitido</h4>
+              <p className="text-sm text-gray-600 mt-1">
+                Has registrado tu voto: <span className="font-bold uppercase">{votoRegistrado}</span>
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="mt-8 mb-6 grid grid-cols-3 gap-3">
+                <button 
+                  onClick={() => setVotoSeleccionado('favor')}
+                  disabled={!eventoActivo}
+                  className={`py-3 rounded font-medium transition-all ${votoSeleccionado === 'favor' ? 'bg-[#7bc57e] text-white shadow-inner' : 'bg-[#81c784] text-white hover:bg-[#7bc57e]'} ${!eventoActivo && 'opacity-50 cursor-not-allowed'}`}
+                >
+                  A favor
+                </button>
+                <button 
+                  onClick={() => setVotoSeleccionado('contra')}
+                  disabled={!eventoActivo}
+                  className={`py-3 rounded font-medium transition-all ${votoSeleccionado === 'contra' ? 'bg-[#d32f2f] text-white shadow-inner' : 'bg-[#e53935] text-white hover:bg-[#d32f2f]'} ${!eventoActivo && 'opacity-50 cursor-not-allowed'}`}
+                >
+                  En contra
+                </button>
+                <button 
+                  onClick={() => setVotoSeleccionado('abstencion')}
+                  disabled={!eventoActivo}
+                  className={`py-3 rounded font-medium transition-all ${votoSeleccionado === 'abstencion' ? 'bg-[#78909c] text-white shadow-inner' : 'bg-[#90a4ae] text-white hover:bg-[#78909c]'} ${!eventoActivo && 'opacity-50 cursor-not-allowed'}`}
+                >
+                  Abstención
+                </button>
+              </div>
 
-          <button 
-            onClick={enviarVoto}
-            disabled={!votoSeleccionado}
-            className={`w-full py-3.5 rounded font-bold text-white transition-colors ${votoSeleccionado ? 'bg-[#1b5e20] hover:bg-[#144d18]' : 'bg-[#1b5e20] opacity-50 cursor-not-allowed'}`}
-          >
-            Emitir voto
-          </button>
+              <button 
+                onClick={enviarVoto}
+                disabled={!votoSeleccionado || !eventoActivo}
+                className={`w-full py-3.5 rounded font-bold text-white transition-colors ${(votoSeleccionado && eventoActivo) ? 'bg-[#1b5e20] hover:bg-[#144d18]' : 'bg-[#1b5e20] opacity-50 cursor-not-allowed'}`}
+              >
+                Emitir voto
+              </button>
+            </>
+          )}
         </div>
 
       </div>
