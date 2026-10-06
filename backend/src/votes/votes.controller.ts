@@ -5,12 +5,13 @@ import { VotesService } from './votes.service.js';
 export class VotesController {
   constructor(private readonly votesService: VotesService) {}
 
+  // CORRECCIÓN: Ahora pide el sessionId para buscar la votación activa de esa sesión
   @Get('active')
-  async getActiveVotingEvent() {
-    return this.votesService.getActiveVotingEvent();
+  async getActiveVotingEvent(@Query('sessionId') sessionId?: string) {
+    const id = sessionId && sessionId !== 'nueva' ? parseInt(sessionId) : undefined;
+    return this.votesService.getActiveVotingEvent(id);
   }
 
-  // Ruta para verificar si el usuario ya votó
   @Get('check')
   async checkUserVote(
     @Query('userId') userId: string,
@@ -19,7 +20,6 @@ export class VotesController {
     return this.votesService.checkUserVote(Number(userId), Number(votingEventId));
   }
   
-  // Ruta para verificar asistencia y palabra al recargar
   @Get('user-status')
   async getUserStatus(
     @Query('userId') userId: string,

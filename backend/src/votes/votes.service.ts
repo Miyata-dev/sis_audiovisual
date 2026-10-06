@@ -6,13 +6,19 @@ const prisma = new PrismaClient();
 @Injectable()
 export class VotesService {
   
-  async getActiveVotingEvent() {
+  // CORRECCIÓN: Filtra por sessionId y retorna null en vez de romper la app
+  async getActiveVotingEvent(sessionId?: number) {
+    const whereClause: any = { status: 'ACTIVO' };
+    if (sessionId) {
+      whereClause.sessionId = sessionId;
+    }
+    
     const activeEvent = await prisma.votingEvent.findFirst({
-      where: { status: 'ACTIVO' },
+      where: whereClause,
       orderBy: { id: 'desc' },
     });
-    if (!activeEvent) throw new NotFoundException('No hay ninguna votación activa en este momento');
-    return activeEvent;
+    
+    return activeEvent || null;
   }
 
   async checkUserVote(userId: number, votingEventId: number) {
@@ -27,7 +33,7 @@ export class VotesService {
       const votoExistente = await prisma.vote.findUnique({
         where: { userId_votingEventId: { userId, votingEventId } },
       });
-      if (votoExistente) throw new BadRequestException('El usuario ya ha emitido un voto en esta sesión.');
+      if (votoExistente) throw new BadRequestException('El usuario ya ha emitido un voto en este tema.');
 
       const nuevoVoto = await prisma.vote.create({
         data: { userId, votingEventId, option },
@@ -76,23 +82,33 @@ export class VotesService {
     };
   }
   
-  // AHORA EL DASHBOARD TRAE EL HISTORIAL DE TEMAS FINALIZADOS
+  // Aislamiento total por sesión
   async getLiveDashboard(requestedSessionId?: number) {
-    const activeEvent = await prisma.votingEvent.findFirst({
-      where: { status: 'ACTIVO' },
+    let sessionId = requestedSessionId;
+
+    if (!sessionId) {
+      const ultimaSesion = await prisma.session.findFirst({
+        orderBy: { id: 'desc' }
+      });
+      if (!ultimaSesion) {
+        return { evento: null, resultados: {}, asistentes: [], solicitudes: [], historial: [] };
+      }
+      sessionId = ultimaSesion.id;
+    }
+
+    // Aseguramos que la votación activa SOLO se muestre si pertenece a ESTA sesión seleccionada
+    const eventoEnEstaSesion = await prisma.votingEvent.findFirst({
+      where: { 
+        status: 'ACTIVO',
+        sessionId: sessionId 
+      },
       orderBy: { id: 'desc' },
     });
 
-    // Usa la sesión que pidió el frontend. Si no pidió, usa la del evento activo o 3 por defecto
-    const sessionId = requestedSessionId || (activeEvent ? activeEvent.sessionId : 3);
-    
-    // Si la sesión que el Presidente está viendo en pantalla NO ES la del evento activo, se oculta la votación
-    const eventoAEnviar = (activeEvent && activeEvent.sessionId === sessionId) ? activeEvent : null;
-
     let conteoVotos: any[] = [];
-    if (eventoAEnviar) {
+    if (eventoEnEstaSesion) {
       conteoVotos = await prisma.vote.findMany({
-        where: { votingEventId: eventoAEnviar.id },
+        where: { votingEventId: eventoEnEstaSesion.id },
         select: { option: true },
       });
     }
@@ -108,11 +124,11 @@ export class VotesService {
       include: { User: { select: { name: true } } },
     });
 
-    // BUSCAMOS LOS TEMAS FINALIZADOS PARA EL HISTORIAL
     const temasFinalizados = await prisma.votingEvent.findMany({
       where: { status: 'FINALIZADO', sessionId: sessionId },
       orderBy: { id: 'desc' },
     });
+    
     const todosLosVotosHistorial = await prisma.vote.findMany({
       where: { votingEventId: { in: temasFinalizados.map(t => t.id) } }
     });
@@ -127,7 +143,7 @@ export class VotesService {
     });
 
     return {
-      evento: activeEvent,
+      evento: eventoEnEstaSesion, 
       resultados: conteoVotos.reduce((acc, curr) => {
         acc[curr.option] = (acc[curr.option] || 0) + 1;
         return acc;
@@ -136,13 +152,18 @@ export class VotesService {
       solicitudes: colaPalabra.map(p => ({
         id: p.id, nombre: p.User.name, hora: p.requestedAt, status: p.status,
       })),
-      historial, // ENVIAMOS EL HISTORIAL AL FRONTEND
+      historial,
     };
   }
   
+  // CORRECCIÓN: Solo verifica si hay una votación activa en la sesión específica, no en toda la base
   async crearVotacion(title: string, sessionId: number) {
-    const activa = await prisma.votingEvent.findFirst({ where: { status: 'ACTIVO' } });
-    if (activa) throw new BadRequestException('Ya existe una votación activa. Ciérrala primero.');
+    const activaEnEstaSesion = await prisma.votingEvent.findFirst({ 
+      where: { status: 'ACTIVO', sessionId: sessionId } 
+    });
+    
+    if (activaEnEstaSesion) throw new BadRequestException('Ya existe un tema activo en esta sesión. Ciérralo primero.');
+    
     const nuevoEvento = await prisma.votingEvent.create({ data: { title, sessionId, status: 'ACTIVO' } });
     return { success: true, data: nuevoEvento };
   }
@@ -182,15 +203,14 @@ export class VotesService {
     });
     return { success: true, data: eventoCerrado };
   }
-// Obtener todas las sesiones reales
+
   async getSessions() {
     return prisma.session.findMany({
       orderBy: { id: 'desc' },
     });
   }
 
-  // Crear una nueva sesión
- async createSession(title: string, theme: string) {
+  async createSession(title: string, theme: string) {
     return prisma.session.create({
       data: {
         title,
@@ -199,9 +219,27 @@ export class VotesService {
       },
     });
   }
-
-  // Finalizar una sesión completa
+// Finalizar una sesión completa y cerrar todo lo que haya quedado abierto
   async finalizarSesionCompleta(sessionId: number) {
+    // Cerramos cualquier votación que haya quedado en estado 'ACTIVO' en esta sesión
+    await prisma.votingEvent.updateMany({
+      where: { 
+        sessionId: sessionId,
+        status: 'ACTIVO' 
+      },
+      data: { status: 'FINALIZADA' }
+    });
+
+    // Limpiamos la cola de palabra 
+    await prisma.speakingRequest.updateMany({
+      where: { 
+        sessionId: sessionId, 
+        status: { in: ['PENDIENTE', 'HABLANDO'] } 
+      },
+      data: { status: 'FINALIZADA' },
+    });
+
+    // Finalmente, cambiamos el estado de la sesión a 'FINALIZADA'
     return prisma.session.update({
       where: { id: sessionId },
       data: { status: 'FINALIZADA' },
