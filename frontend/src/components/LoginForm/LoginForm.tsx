@@ -4,9 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { User } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
+import { LOCAL_STORAGE_KEYS } from '../../constants/localStorage/keys';
 
 const loginSchema = z.object({
-  username: z.string().min(1, 'El usuario es requerido'),
+  email: z.string().email('El email no es válido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
@@ -15,6 +17,8 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+
+  const { login } = useAuth();
 
   const {
     register,
@@ -32,7 +36,10 @@ export const LoginForm = () => {
       const response = await axios.post('api/auth/login', data);
       
       console.log('Login exitoso:', response.data);
-      
+
+      localStorage.setItem(LOCAL_STORAGE_KEYS.TOKEN, response.data.token);
+      login(response.data.user);
+
     } catch (error: any) {
       setServerError(error.response?.data?.message || 'Error al iniciar sesión');
     } finally {
@@ -55,12 +62,12 @@ export const LoginForm = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <input
-            {...register('username')}
-            placeholder="Username"
+            {...register('email')}
+            placeholder="email"
             className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
           />
-          {errors.username && (
-            <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
           )}
         </div>
 

@@ -9,6 +9,7 @@ export class AuthController {
   @Post('login') 
   @HttpCode(HttpStatus.OK) 
   async login(@Body() loginDto: LoginDto) {
+    console.log('BODY RECIBIDO:', loginDto); // Log del cuerpo recibido
     return this.authService.login(loginDto);
   }
 }
