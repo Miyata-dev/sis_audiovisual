@@ -6,6 +6,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { SessionsModule } from './sessions/sessions.module.js';
 import { VotesModule } from './votes/votes.module.js'; 
+import { StreamsModule } from './streams/streams.module.js';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { VotesModule } from './votes/votes.module.js';
       serveRoot: '/uploads',
     }), 
     SessionsModule,
-    VotesModule 
+    VotesModule,
+    StreamsModule
   ],
   controllers: [AppController],
   providers: [AppService],
