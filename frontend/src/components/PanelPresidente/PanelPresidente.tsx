@@ -27,7 +27,7 @@ export default function PanelPresidente() {
 
   const cargarSesiones = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/votes/sessions');
+      const res = await fetch('/api/votes/sessions');
       if (res.ok) {
         const dataSesiones = await res.json();
         setSesiones(dataSesiones);
@@ -41,7 +41,7 @@ export default function PanelPresidente() {
   const cargarDashboard = useCallback(async () => {
     if (!sesionSeleccionada || sesionSeleccionada === 'nueva') return;
     try {
-      const response = await fetch(`http://localhost:3000/api/votes/dashboard/live?sessionId=${sesionSeleccionada}`);
+      const response = await fetch(`/api/votes/dashboard/live?sessionId=${sesionSeleccionada}`);
       if (response.ok) {
         const jsonData = await response.json();
         setData(jsonData);
@@ -76,7 +76,7 @@ export default function PanelPresidente() {
   const confirmarCrearSesion = async () => {
     if (!nuevaSesionTitulo.trim() || !nuevaSesionTema.trim()) return;
     try {
-      const res = await fetch('http://localhost:3000/api/votes/sessions/create', {
+      const res = await fetch('/api/votes/sessions/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: nuevaSesionTitulo, theme: nuevaSesionTema }) 
@@ -99,7 +99,7 @@ export default function PanelPresidente() {
   const iniciarNuevaVotacion = async () => {
     if (!nuevoTema.trim() || !sesionSeleccionada) return;
     try {
-      const response = await fetch('http://localhost:3000/api/votes/create', {
+      const response = await fetch('/api/votes/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: nuevoTema, sessionId: Number(sesionSeleccionada) }),
@@ -120,7 +120,7 @@ export default function PanelPresidente() {
     if (!data.evento) return;
     if (!window.confirm('¿Estás seguro de que deseas cerrar la votación de este TEMA?')) return;
     try {
-      const response = await fetch('http://localhost:3000/api/votes/close', {
+      const response = await fetch('/api/votes/close', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ votingEventId: data.evento.id }),
@@ -132,7 +132,7 @@ export default function PanelPresidente() {
   const finalizarSesionCompleta = async () => {
     if (!window.confirm('¿Estás seguro de finalizar TODA LA SESIÓN? Ya no podrás crear más temas.')) return;
     try {
-      const response = await fetch('http://localhost:3000/api/votes/sessions/close', {
+      const response = await fetch('/api/votes/sessions/close', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: Number(sesionSeleccionada) }),
@@ -146,12 +146,12 @@ export default function PanelPresidente() {
   };
 
   const darPalabra = async (id: number) => {
-    await fetch('http://localhost:3000/api/votes/speak/grant', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ solicitudId: id }) });
+    await fetch('/api/votes/speak/grant', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ solicitudId: id }) });
     cargarDashboard();
   };
 
   const quitarPalabra = async (id: number) => {
-    await fetch('http://localhost:3000/api/votes/speak/end', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ solicitudId: id }) });
+    await fetch('/api/votes/speak/end', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ solicitudId: id }) });
     cargarDashboard();
   };
 

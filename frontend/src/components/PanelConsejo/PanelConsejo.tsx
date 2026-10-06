@@ -27,7 +27,7 @@ export default function PanelConsejo() {
   useEffect(() => {
     const fetchSesiones = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/votes/sessions');
+        const res = await fetch('/api/votes/sessions');
         if (res.ok) {
           const data = await res.json();
           setSesiones(data);
@@ -38,14 +38,14 @@ export default function PanelConsejo() {
     fetchSesiones();
   }, []);
 
-  // 2. Polling de datos dependiendo de la sesión seleccionada (Usamos el dashboard)
+  // Polling de datos dependiendo de la sesión seleccionada (Usamos el dashboard)
   useEffect(() => {
     if (!sesionSeleccionada) return;
 
     const cargarDatos = async () => {
       try {
         // Consumimos el dashboard para obtener el evento activo Y el historial
-        const response = await fetch(`http://localhost:3000/api/votes/dashboard/live?sessionId=${sesionSeleccionada}`);
+        const response = await fetch(`/api/votes/dashboard/live?sessionId=${sesionSeleccionada}`);
         if (response.ok) {
           const data = await response.json();
           
@@ -55,7 +55,7 @@ export default function PanelConsejo() {
           if (data.evento && data.evento.id) {
             setEventoActivo(data.evento);
             if (user?.id) {
-              const checkRes = await fetch(`http://localhost:3000/api/votes/check?userId=${user.id}&votingEventId=${data.evento.id}`);
+              const checkRes = await fetch(`/api/votes/check?userId=${user.id}&votingEventId=${data.evento.id}`);
               if (checkRes.ok) {
                 const checkData = await checkRes.json();
                 if (checkData.hasVoted) {
@@ -76,7 +76,7 @@ export default function PanelConsejo() {
 
         // Consultar estado personal de asistencia y palabra
         if (user?.id) {
-          const statusRes = await fetch(`http://localhost:3000/api/votes/user-status?userId=${user.id}&sessionId=${sesionSeleccionada}`);
+          const statusRes = await fetch(`/api/votes/user-status?userId=${user.id}&sessionId=${sesionSeleccionada}`);
           if (statusRes.ok) {
             const statusData = await statusRes.json();
             setPresente(statusData.presente);
@@ -95,7 +95,7 @@ export default function PanelConsejo() {
   const marcarAsistencia = async () => {
     if (!user || !sesionSeleccionada) return;
     try {
-      const res = await fetch('http://localhost:3000/api/votes/attendance', {
+      const res = await fetch('/api/votes/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, sessionId: Number(sesionSeleccionada) }),
@@ -107,7 +107,7 @@ export default function PanelConsejo() {
   const pedirPalabra = async () => {
     if (!user || !sesionSeleccionada) return;
     try {
-      const res = await fetch('http://localhost:3000/api/votes/speak', {
+      const res = await fetch('/api/votes/speak', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, sessionId: Number(sesionSeleccionada) }),
@@ -122,7 +122,7 @@ export default function PanelConsejo() {
   const cancelarPalabra = async () => {
     if (!user || !sesionSeleccionada) return;
     try {
-      const res = await fetch('http://localhost:3000/api/votes/speak/cancel', {
+      const res = await fetch('/api/votes/speak/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, sessionId: Number(sesionSeleccionada) }),
@@ -137,7 +137,7 @@ export default function PanelConsejo() {
   const enviarVoto = async () => {
     if (!votoSeleccionado || !user || !eventoActivo) return;
     try {
-      const response = await fetch('http://localhost:3000/api/votes', {
+      const response = await fetch('/api/votes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, votingEventId: eventoActivo.id, option: votoSeleccionado }),
