@@ -12,7 +12,7 @@ export const AdminUploadSection = ({ sessionId }: Props) => {
   const [uploading, setUploading] = useState<string | null>(null);
   const [message, setMessage] = useState('');
 
-  if (user?.role !== 'ADMIN') return null;
+  if (user?.role !== 'ADMIN' && user?.role !== 'PRESIDENTE') return null;
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     const file = e.target.files?.[0];

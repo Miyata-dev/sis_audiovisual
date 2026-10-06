@@ -8,6 +8,9 @@ export class SessionsService {
   
   async getHistory() {
     return await prisma.session.findMany({
+      where: {
+        status: 'FINALIZADA' 
+      },
       orderBy: {
         date: 'desc',
       },
@@ -37,6 +40,7 @@ export class SessionsService {
       data: { transcriptionUrl },
     });
   }
+  
   async updateThumbnailUrl(id: number, thumbnailUrl: string) {
     return await prisma.session.update({
       where: { id },

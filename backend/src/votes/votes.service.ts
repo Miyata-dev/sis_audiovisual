@@ -6,149 +6,93 @@ const prisma = new PrismaClient();
 @Injectable()
 export class VotesService {
   
-  // Nueva función para obtener la votación activa
   async getActiveVotingEvent() {
     const activeEvent = await prisma.votingEvent.findFirst({
-      where: {
-        status: 'ACTIVO',
-      },
-      orderBy: {
-        id: 'desc', 
-      },
+      where: { status: 'ACTIVO' },
+      orderBy: { id: 'desc' },
     });
-
-    if (!activeEvent) {
-      throw new NotFoundException('No hay ninguna votación activa en este momento');
-    }
-
+    if (!activeEvent) throw new NotFoundException('No hay ninguna votación activa en este momento');
     return activeEvent;
   }
 
-  // Verifica si un usuario específico ya votó en un evento
   async checkUserVote(userId: number, votingEventId: number) {
     const voto = await prisma.vote.findUnique({
-      where: {
-        userId_votingEventId: {
-          userId,
-          votingEventId,
-        },
-      },
+      where: { userId_votingEventId: { userId, votingEventId } },
     });
-
-    return { 
-      hasVoted: !!voto, 
-      option: voto?.option || null 
-    };
+    return { hasVoted: !!voto, option: voto?.option || null };
   }
 
   async emitirVoto(userId: number, votingEventId: number, option: string) {
     try {
-      // Verifica si el usuario ya votó en este evento para evitar duplicados
       const votoExistente = await prisma.vote.findUnique({
-        where: {
-          userId_votingEventId: {
-            userId,
-            votingEventId,
-          },
-        },
+        where: { userId_votingEventId: { userId, votingEventId } },
       });
+      if (votoExistente) throw new BadRequestException('El usuario ya ha emitido un voto en esta sesión.');
 
-      if (votoExistente) {
-        throw new BadRequestException('El usuario ya ha emitido un voto en esta sesión.');
-      }
-
-      // Registra el nuevo voto
       const nuevoVoto = await prisma.vote.create({
-        data: {
-          userId,
-          votingEventId,
-          option,
-        },
+        data: { userId, votingEventId, option },
       });
-
       return { success: true, data: nuevoVoto };
     } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error ? error.message : String(error),
-      );
+      throw new BadRequestException(error instanceof Error ? error.message : String(error));
     }
   }
   
-  // Registrar asistencia
   async registrarAsistencia(userId: number, sessionId: number) {
     const existe = await prisma.attendance.findUnique({
-      where: {
-        userId_sessionId: { userId, sessionId },
-      },
+      where: { userId_sessionId: { userId, sessionId } },
     });
-
     if (existe) return { success: true, message: 'Asistencia ya registrada' };
 
-    await prisma.attendance.create({
-      data: { userId, sessionId },
-    });
+    await prisma.attendance.create({ data: { userId, sessionId } });
     return { success: true };
   }
 
-  // Solicitar la palabra
   async solicitarPalabra(userId: number, sessionId: number) {
     await prisma.speakingRequest.create({
-      data: {
-        userId,
-        sessionId,
-        status: 'PENDIENTE',
-      },
+      data: { userId, sessionId, status: 'PENDIENTE' },
     });
     return { success: true };
   }
   
-  // Cancelar solicitud de palabra o Terminar Intervención (CORREGIDO)
   async cancelarPalabra(userId: number, sessionId: number) {
     await prisma.speakingRequest.deleteMany({
-      where: {
-        userId: userId,
-        sessionId: sessionId,
-        status: { in: ['PENDIENTE', 'HABLANDO'] }, // <-- Ahora borra en ambos estados
-      },
+      where: { userId, sessionId, status: { in: ['PENDIENTE', 'HABLANDO'] } },
     });
     return { success: true };
   }
   
-  // Recupera el estado de los botones al cargar la página (CORREGIDO)
   async getUserSessionStatus(userId: number, sessionId: number) {
     const asistencia = await prisma.attendance.findUnique({
       where: { userId_sessionId: { userId, sessionId } },
     });
-    
     const palabra = await prisma.speakingRequest.findFirst({
-      where: { 
-        userId, 
-        sessionId, 
-        status: { in: ['PENDIENTE', 'HABLANDO'] } // <-- Busca ambos estados
-      },
+      where: { userId, sessionId, status: { in: ['PENDIENTE', 'HABLANDO'] } },
     });
-
     return {
       presente: !!asistencia,
       palabraSolicitada: !!palabra,
-      estadoPalabra: palabra ? palabra.status : null, // <-- Devuelve el estado exacto
+      estadoPalabra: palabra ? palabra.status : null,
     };
   }
   
-  // Dashboard en tiempo real para el Presidente (CORREGIDO)
-  async getLiveDashboard() {
+  // AHORA EL DASHBOARD TRAE EL HISTORIAL DE TEMAS FINALIZADOS
+  async getLiveDashboard(requestedSessionId?: number) {
     const activeEvent = await prisma.votingEvent.findFirst({
       where: { status: 'ACTIVO' },
       orderBy: { id: 'desc' },
     });
 
-    const sessionId = activeEvent ? activeEvent.sessionId : 3;
+    // Usa la sesión que pidió el frontend. Si no pidió, usa la del evento activo o 3 por defecto
+    const sessionId = requestedSessionId || (activeEvent ? activeEvent.sessionId : 3);
+    
+    // Si la sesión que el Presidente está viendo en pantalla NO ES la del evento activo, se oculta la votación
+    const eventoAEnviar = (activeEvent && activeEvent.sessionId === sessionId) ? activeEvent : null;
 
     let conteoVotos: any[] = [];
-    
-    if (activeEvent) {
+    if (eventoAEnviar) {
       conteoVotos = await prisma.vote.findMany({
-        where: { votingEventId: activeEvent.id },
+        where: { votingEventId: eventoAEnviar.id },
         select: { option: true },
       });
     }
@@ -159,12 +103,27 @@ export class VotesService {
     });
 
     const colaPalabra = await prisma.speakingRequest.findMany({
-      where: { 
-        sessionId: sessionId, 
-        status: { in: ['PENDIENTE', 'HABLANDO'] } // <-- El presidente debe ver a los que hablan
-      },
+      where: { sessionId: sessionId, status: { in: ['PENDIENTE', 'HABLANDO'] } },
       orderBy: { requestedAt: 'asc' },
       include: { User: { select: { name: true } } },
+    });
+
+    // BUSCAMOS LOS TEMAS FINALIZADOS PARA EL HISTORIAL
+    const temasFinalizados = await prisma.votingEvent.findMany({
+      where: { status: 'FINALIZADO', sessionId: sessionId },
+      orderBy: { id: 'desc' },
+    });
+    const todosLosVotosHistorial = await prisma.vote.findMany({
+      where: { votingEventId: { in: temasFinalizados.map(t => t.id) } }
+    });
+
+    const historial = temasFinalizados.map(tema => {
+      const votosTema = todosLosVotosHistorial.filter(v => v.votingEventId === tema.id);
+      const resultados = votosTema.reduce((acc, curr) => {
+        acc[curr.option] = (acc[curr.option] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      return { id: tema.id, title: tema.title, resultados, totalVotos: votosTema.length };
     });
 
     return {
@@ -175,21 +134,24 @@ export class VotesService {
       }, {} as Record<string, number>),
       asistentes: asistencia.map(a => a.User.name),
       solicitudes: colaPalabra.map(p => ({
-        id: p.id,
-        nombre: p.User.name,
-        hora: p.requestedAt,
-        status: p.status, // <-- Enviamos el status al frontend
+        id: p.id, nombre: p.User.name, hora: p.requestedAt, status: p.status,
       })),
+      historial, // ENVIAMOS EL HISTORIAL AL FRONTEND
     };
   }
   
-  // El presidente otorga la palabra
+  async crearVotacion(title: string, sessionId: number) {
+    const activa = await prisma.votingEvent.findFirst({ where: { status: 'ACTIVO' } });
+    if (activa) throw new BadRequestException('Ya existe una votación activa. Ciérrala primero.');
+    const nuevoEvento = await prisma.votingEvent.create({ data: { title, sessionId, status: 'ACTIVO' } });
+    return { success: true, data: nuevoEvento };
+  }
+
   async otorgarPalabra(solicitudId: number) {
     await prisma.speakingRequest.updateMany({
       where: { status: 'HABLANDO' },
       data: { status: 'FINALIZADO' },
     });
-
     const solicitud = await prisma.speakingRequest.update({
       where: { id: solicitudId },
       data: { status: 'HABLANDO' },
@@ -197,7 +159,6 @@ export class VotesService {
     return { success: true, data: solicitud };
   }
 
-  // El presidente termina el turno de palabra
   async terminarPalabra(solicitudId: number) {
     const solicitud = await prisma.speakingRequest.update({
       where: { id: solicitudId },
@@ -206,32 +167,44 @@ export class VotesService {
     return { success: true, data: solicitud };
   }
   
- // Cerrar la votación activa y limpiar la cola de palabra
   async cerrarVotacion(votingEventId: number) {
-    // 1. Buscamos el evento para saber a qué sesión pertenece
-    const evento = await prisma.votingEvent.findUnique({
-      where: { id: votingEventId },
-    });
+    const evento = await prisma.votingEvent.findUnique({ where: { id: votingEventId } });
+    if (!evento) throw new NotFoundException('Evento no encontrado');
 
-    if (!evento) {
-      throw new NotFoundException('Evento no encontrado');
-    }
-
-    // Cambiamos el estado de ACTIVO a FINALIZADO
     const eventoCerrado = await prisma.votingEvent.update({
       where: { id: votingEventId },
       data: { status: 'FINALIZADO' },
     });
 
-    // Todos los PENDIENTE y HABLANDO pasan a FINALIZADO
     await prisma.speakingRequest.updateMany({
-      where: { 
-        sessionId: evento.sessionId,
-        status: { in: ['PENDIENTE', 'HABLANDO'] }
-      },
+      where: { sessionId: evento.sessionId, status: { in: ['PENDIENTE', 'HABLANDO'] } },
       data: { status: 'FINALIZADO' },
     });
-
     return { success: true, data: eventoCerrado };
+  }
+// Obtener todas las sesiones reales
+  async getSessions() {
+    return prisma.session.findMany({
+      orderBy: { id: 'desc' },
+    });
+  }
+
+  // Crear una nueva sesión
+ async createSession(title: string, theme: string) {
+    return prisma.session.create({
+      data: {
+        title,
+        theme, 
+        status: 'ABIERTA',
+      },
+    });
+  }
+
+  // Finalizar una sesión completa
+  async finalizarSesionCompleta(sessionId: number) {
+    return prisma.session.update({
+      where: { id: sessionId },
+      data: { status: 'FINALIZADA' },
+    });
   }
 }
