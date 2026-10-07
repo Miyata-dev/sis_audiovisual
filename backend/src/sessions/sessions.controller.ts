@@ -114,11 +114,12 @@ export class SessionsController {
     try {
       return await this.sessionsService.deleteSession(Number(id));
     } catch (error) {
-      // Si Prisma no encuentra el ID, lanza P2025
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new NotFoundException(`Sesión con ID ${id} no encontrada`);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new NotFoundException(`Sesión con ID ${id} no encontrada`);
+        }
       }
-      throw new InternalServerErrorException('Error al intentar eliminar la sesión');
+      throw new InternalServerErrorException('Error interno al intentar eliminar la sesión');
     }
   }
 }

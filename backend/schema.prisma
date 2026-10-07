@@ -12,7 +12,7 @@ model Attendance {
   userId     Int
   sessionId  Int
   timeJoined DateTime @default(now())
-  Session    Session  @relation(fields: [sessionId], references: [id])
+  Session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   User       User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, sessionId])
@@ -25,7 +25,7 @@ model MediaFile {
   storageUrl String
   sessionId  Int
   uploadedAt DateTime @default(now())
-  Session    Session  @relation(fields: [sessionId], references: [id])
+  Session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model Role {
@@ -49,7 +49,6 @@ model Session {
   MediaFile        MediaFile[]
   SpeakingRequest  SpeakingRequest[]
   VotingEvent      VotingEvent[]
-  deletedAt   DateTime? //soft delete field
 }
 
 model SpeakingRequest {
@@ -58,7 +57,7 @@ model SpeakingRequest {
   sessionId   Int
   status      String
   requestedAt DateTime @default(now())
-  Session     Session  @relation(fields: [sessionId], references: [id])
+  Session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   User        User     @relation(fields: [userId], references: [id])
 }
 
@@ -81,7 +80,7 @@ model Vote {
   option        String
   timestamp     DateTime    @default(now())
   User          User        @relation(fields: [userId], references: [id])
-  VotingEvent   VotingEvent @relation(fields: [votingEventId], references: [id])
+  VotingEvent   VotingEvent @relation(fields: [votingEventId], references: [id], onDelete: Cascade)
 
   @@unique([userId, votingEventId])
 }
@@ -93,5 +92,5 @@ model VotingEvent {
   sessionId   Int
   status      String
   Vote        Vote[]
-  Session     Session @relation(fields: [sessionId], references: [id])
+  Session     Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
