@@ -127,8 +127,8 @@ export default function Register() {
                   errors.roleId ? 'border-red-500' : 'border-gray-300'
                 } bg-white text-gray-900 rounded-md focus:outline-none focus:ring-[#5ba85c] focus:border-[#5ba85c] sm:text-sm`}
               >
-                <option value={2}>Consejero</option>
-                <option value={1}>Administrador</option>
+                <option value={1}>Consejero</option>
+                <option value={2}>Administrador</option>
                 <option value={3}>Presidente</option>
               </select>
               {errors.roleId && <p className="mt-1 text-xs text-red-500">{errors.roleId.message}</p>}
