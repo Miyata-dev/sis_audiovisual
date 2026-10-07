@@ -38,6 +38,14 @@ export class VotesController {
   async getSessions() {
     return this.votesService.getSessions();
   }
+  @Get('report')
+  async generarReporte(@Query('votingEventId') votingEventId: string) {
+    return this.votesService.generarReporteVotacion(Number(votingEventId));
+  }
+  @Get('report/session')
+  async generarReporteSesion(@Query('sessionId') sessionId: string) {
+    return this.votesService.generarReporteSesionCompleta(Number(sessionId));
+  }
   
   @Post()
   async emitirVoto(

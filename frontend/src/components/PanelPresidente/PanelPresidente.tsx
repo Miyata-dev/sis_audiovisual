@@ -144,6 +144,30 @@ export default function PanelPresidente() {
       console.error('Error al finalizar sesión:', error);
     }
   };
+  const descargarReporte = async (votingEventId: number, tituloTema: string) => {
+    try {
+      const res = await fetch(`/api/votes/report?votingEventId=${votingEventId}`);
+      if (res.ok) {
+        const dataReporte = await res.json();
+        
+        const blob = new Blob([dataReporte.csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        const nombreSeguro = tituloTema.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        link.setAttribute('download', `reporte_${nombreSeguro}.csv`);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert('Error al generar el reporte.');
+      }
+    } catch (error) {
+      console.error('Error descargando reporte:', error);
+    }
+  };
 
   const darPalabra = async (id: number) => {
     await fetch('/api/votes/speak/grant', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ solicitudId: id }) });
@@ -342,7 +366,7 @@ export default function PanelPresidente() {
                 ) : (
                   <ul className="space-y-4">
                     {data.historial.map((tema) => (
-                      <li key={tema.id} className="p-4 border border-gray-100 rounded bg-gray-50/80 shadow-sm">
+                      <li key={tema.id} className="p-4 border border-gray-100 rounded bg-gray-50/80 shadow-sm relative pr-24">
                         <h4 className="font-semibold text-gray-800 mb-1">{tema.title}</h4>
                         <p className="text-xs text-gray-500 mb-3">{tema.totalVotos} votos emitidos</p>
                         <div className="flex gap-2 text-[11px] font-bold">
@@ -350,6 +374,16 @@ export default function PanelPresidente() {
                           <span className="text-red-800 bg-red-100 px-2.5 py-1 rounded">Contra: {tema.resultados['contra'] || 0}</span>
                           <span className="text-gray-700 bg-gray-200 px-2.5 py-1 rounded">Abst.: {tema.resultados['abstencion'] || 0}</span>
                         </div>
+                        
+                        <button 
+                          onClick={() => descargarReporte(tema.id, tema.title)}
+                          className="absolute top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2.5 py-1.5 rounded flex items-center gap-1 font-bold transition-colors shadow-sm"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          REPORTE
+                        </button>
                       </li>
                     ))}
                   </ul>

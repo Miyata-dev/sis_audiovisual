@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 @Injectable()
 export class VotesService {
   
-  // CORRECCIÓN: Filtra por sessionId y retorna null en vez de romper la app
   async getActiveVotingEvent(sessionId?: number) {
     const whereClause: any = { status: 'ACTIVO' };
     if (sessionId) {
@@ -30,6 +29,13 @@ export class VotesService {
 
   async emitirVoto(userId: number, votingEventId: number, option: string) {
     try {
+      // 1. Candado de seguridad por Rol
+      const user = await prisma.user.findUnique({ where: { id: userId }, include: { Role: true } });
+      const roleName = user?.Role?.name?.toLowerCase() || '';
+      if (roleName.includes('presidente') || roleName.includes('admin')) {
+         throw new BadRequestException('Acción denegada: El Presidente no puede emitir votos.');
+      }
+
       const votoExistente = await prisma.vote.findUnique({
         where: { userId_votingEventId: { userId, votingEventId } },
       });
@@ -45,6 +51,13 @@ export class VotesService {
   }
   
   async registrarAsistencia(userId: number, sessionId: number) {
+    //Candado de seguridad por Rol
+    const user = await prisma.user.findUnique({ where: { id: userId }, include: { Role: true } });
+    const roleName = user?.Role?.name?.toLowerCase() || '';
+    if (roleName.includes('presidente') || roleName.includes('admin')) {
+       throw new BadRequestException('El Presidente no suma en la asistencia de los 29 Consejeros.');
+    }
+
     const existe = await prisma.attendance.findUnique({
       where: { userId_sessionId: { userId, sessionId } },
     });
@@ -55,6 +68,13 @@ export class VotesService {
   }
 
   async solicitarPalabra(userId: number, sessionId: number) {
+    //Candado de seguridad por Rol
+    const user = await prisma.user.findUnique({ where: { id: userId }, include: { Role: true } });
+    const roleName = user?.Role?.name?.toLowerCase() || '';
+    if (roleName.includes('presidente') || roleName.includes('admin')) {
+       throw new BadRequestException('El Presidente no necesita pedir la palabra en la cola.');
+    }
+
     await prisma.speakingRequest.create({
       data: { userId, sessionId, status: 'PENDIENTE' },
     });
@@ -82,7 +102,6 @@ export class VotesService {
     };
   }
   
-  // Aislamiento total por sesión
   async getLiveDashboard(requestedSessionId?: number) {
     let sessionId = requestedSessionId;
 
@@ -96,7 +115,6 @@ export class VotesService {
       sessionId = ultimaSesion.id;
     }
 
-    // Aseguramos que la votación activa SOLO se muestre si pertenece a ESTA sesión seleccionada
     const eventoEnEstaSesion = await prisma.votingEvent.findFirst({
       where: { 
         status: 'ACTIVO',
@@ -156,7 +174,6 @@ export class VotesService {
     };
   }
   
-  // CORRECCIÓN: Solo verifica si hay una votación activa en la sesión específica, no en toda la base
   async crearVotacion(title: string, sessionId: number) {
     const activaEnEstaSesion = await prisma.votingEvent.findFirst({ 
       where: { status: 'ACTIVO', sessionId: sessionId } 
@@ -219,30 +236,118 @@ export class VotesService {
       },
     });
   }
-// Finalizar una sesión completa y cerrar todo lo que haya quedado abierto
+
   async finalizarSesionCompleta(sessionId: number) {
-    // Cerramos cualquier votación que haya quedado en estado 'ACTIVO' en esta sesión
     await prisma.votingEvent.updateMany({
-      where: { 
-        sessionId: sessionId,
-        status: 'ACTIVO' 
-      },
-      data: { status: 'FINALIZADA' }
+      where: { sessionId: sessionId, status: 'ACTIVO' },
+      data: { status: 'FINALIZADO' }
     });
 
-    // Limpiamos la cola de palabra 
     await prisma.speakingRequest.updateMany({
-      where: { 
-        sessionId: sessionId, 
-        status: { in: ['PENDIENTE', 'HABLANDO'] } 
-      },
-      data: { status: 'FINALIZADA' },
+      where: { sessionId: sessionId, status: { in: ['PENDIENTE', 'HABLANDO'] } },
+      data: { status: 'FINALIZADO' },
     });
 
-    // Finalmente, cambiamos el estado de la sesión a 'FINALIZADA'
     return prisma.session.update({
       where: { id: sessionId },
       data: { status: 'FINALIZADA' },
     });
+  }
+  async generarReporteVotacion(votingEventId: number) {
+    const evento = await prisma.votingEvent.findUnique({
+      where: { id: votingEventId },
+      include: { Session: true }
+    });
+    
+    if (!evento) throw new NotFoundException('Evento de votación no encontrado');
+
+    // Obtenemos todos los votos con el nombre del Consejero que lo emitió
+    const votos = await prisma.vote.findMany({
+      where: { votingEventId },
+      include: { User: { select: { name: true } } },
+      orderBy: { timestamp: 'asc' }
+    });
+
+    // Contamos los totales
+    let favor = 0, contra = 0, abstencion = 0;
+    votos.forEach(v => {
+      if (v.option === 'favor') favor++;
+      if (v.option === 'contra') contra++;
+      if (v.option === 'abstencion') abstencion++;
+    });
+
+    // Armamos el archivo CSV 
+    let csv = '\uFEFF'; 
+    csv += `REPORTE OFICIAL DE VOTACION\n\n`;
+    csv += `Sesion:,"${evento.Session.title}"\n`;
+    csv += `Tema General:,"${evento.Session.theme || 'Sin tema'}"\n`;
+    csv += `Materia Votada:,"${evento.title}"\n`;
+    csv += `Estado:,"${evento.status}"\n\n`;
+    
+    csv += `RESUMEN DE VOTOS\n`;
+    csv += `A Favor:,${favor}\n`;
+    csv += `En Contra:,${contra}\n`;
+    csv += `Abstencion:,${abstencion}\n`;
+    csv += `Total Votos Emitidos:,${votos.length}\n\n`;
+
+    csv += `DETALLE DE CONSEJEROS\n`;
+    csv += `Nombre Consejero,Voto Emitido,Fecha y Hora (Local)\n`;
+
+    votos.forEach(v => {
+      const fecha = new Date(v.timestamp).toLocaleString('es-CL');
+      csv += `"${v.User.name}","${v.option.toUpperCase()}","${fecha}"\n`;
+    });
+
+    return { success: true, csv };
+  }
+  async generarReporteSesionCompleta(sessionId: number) {
+    const session = await prisma.session.findUnique({ where: { id: sessionId } });
+    if (!session) throw new NotFoundException('Sesión no encontrada');
+
+    const eventos = await prisma.votingEvent.findMany({
+      where: { sessionId, status: 'FINALIZADO' },
+      include: {
+        Vote: { include: { User: { select: { name: true } } }, orderBy: { timestamp: 'asc' } }
+      }
+    });
+
+    let csv = '\uFEFF'; // Para que Excel lea los tildes
+    csv += `REPORTE CONSOLIDADO DE VOTACIONES\n\n`;
+    csv += `Sesion:,"${session.title}"\n`;
+    csv += `Tema General:,"${session.theme || 'Sin tema'}"\n`;
+    csv += `Fecha de emision:,"${new Date().toLocaleString('es-CL')}"\n\n`;
+
+    if (eventos.length === 0) {
+      csv += `No se registraron votaciones en esta sesion.\n`;
+      return { success: true, csv };
+    }
+
+    // Iteramos sobre todos los temas votados en esa sesión
+    for (const evento of eventos) {
+      csv += `------------------------------------------------\n`;
+      csv += `Materia Votada:,"${evento.title}"\n`;
+      
+      let favor = 0, contra = 0, abstencion = 0;
+      evento.Vote.forEach(v => {
+        if (v.option === 'favor') favor++;
+        if (v.option === 'contra') contra++;
+        if (v.option === 'abstencion') abstencion++;
+      });
+
+      csv += `A Favor:,${favor}\n`;
+      csv += `En Contra:,${contra}\n`;
+      csv += `Abstencion:,${abstencion}\n`;
+      csv += `Total Votos Emitidos:,${evento.Vote.length}\n\n`;
+
+      csv += `Detalle de Consejeros:\n`;
+      csv += `Nombre Consejero,Voto Emitido,Fecha y Hora (Local)\n`;
+      evento.Vote.forEach(v => {
+        const fecha = new Date(v.timestamp).toLocaleString('es-CL');
+        csv += `"${v.User.name}","${v.option.toUpperCase()}","${fecha}"\n`;
+      });
+      csv += `\n\n`;
+    }
+
+    return { success: true, csv };
   }
 }

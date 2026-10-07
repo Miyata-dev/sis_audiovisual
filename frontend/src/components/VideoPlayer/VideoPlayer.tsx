@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { Icon } from "../Icon/Icon"; // Asegúrate de que la ruta sea correcta
-// ==========================================
-// 2. Componente VideoPlayer
-// Principio: Encapsulamiento de la UI del reproductor.
-// ==========================================
+
 export const VideoPlayer = () => {
   // Estado simulado para el progreso del video
   const [progress, setProgress] = useState(30); 
