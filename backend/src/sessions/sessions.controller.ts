@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Param, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Param, Delete, UploadedFile, UseInterceptors, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SessionsService } from './sessions.service.js';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 import ffprobeStatic from 'ffprobe-static';
+import { Prisma } from '@prisma/client';
 
 ffmpeg.setFfprobePath(ffprobeStatic.path); 
 
@@ -106,5 +107,18 @@ export class SessionsController {
   async uploadThumbnail(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
     const thumbnailUrl = `/uploads/${file.filename}`;
     return this.sessionsService.updateThumbnailUrl(Number(id), thumbnailUrl);
+  }
+
+  @Delete(':id')
+  async deleteSession(@Param('id') id: string) {
+    try {
+      return await this.sessionsService.deleteSession(Number(id));
+    } catch (error) {
+      // Si Prisma no encuentra el ID, lanza P2025
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException(`Sesión con ID ${id} no encontrada`);
+      }
+      throw new InternalServerErrorException('Error al intentar eliminar la sesión');
+    }
   }
 }
