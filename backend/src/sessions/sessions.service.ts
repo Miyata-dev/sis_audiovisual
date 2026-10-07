@@ -9,7 +9,8 @@ export class SessionsService {
   async getHistory() {
     return await prisma.session.findMany({
       where: {
-        status: 'FINALIZADA' 
+        status: 'FINALIZADA', 
+        deletedAt: null,
       },
       orderBy: {
         date: 'desc',
@@ -45,6 +46,15 @@ export class SessionsService {
     return await prisma.session.update({
       where: { id },
       data: { thumbnailUrl },
+    });
+  }
+
+  async deleteSession(id: number) {
+    return await prisma.session.update({
+      where: { id },
+      data: { 
+        deletedAt: new Date() 
+      },
     });
   }
 }

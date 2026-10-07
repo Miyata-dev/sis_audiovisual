@@ -49,6 +49,7 @@ model Session {
   MediaFile        MediaFile[]
   SpeakingRequest  SpeakingRequest[]
   VotingEvent      VotingEvent[]
+  deletedAt   DateTime? //soft delete field
 }
 
 model SpeakingRequest {

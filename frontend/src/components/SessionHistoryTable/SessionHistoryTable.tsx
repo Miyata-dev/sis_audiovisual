@@ -39,6 +39,28 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
       });
   }, []);
 
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta sesión? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/sessions/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar la sesión en el servidor');
+      }
+
+      setSesiones((prevSesiones) => prevSesiones.filter((s) => s.id !== id));
+      alert('Sesión eliminada correctamente');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Hubo un error al intentar eliminar la sesión.');
+    }
+  };
+
   if (cargando) {
     return <div className="p-6 text-gray-500">Cargando historial de sesiones...</div>;
   }
@@ -139,16 +161,40 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
                 {/* Botones */}
                 <div className="flex flex-col items-end gap-2 md:ml-auto justify-center">
                   
-                  {user?.role === 'ADMIN' || user?.role === 'PRESIDENTE' && (
-                    <button
-                      onClick={() => {
-                        console.log(`Gestionando archivos para la sesión con ID: ${session.id}`);
-                        onManageFiles(session.id);
-                      }}
-                      className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 bg-blue-600 rounded text-sm text-white font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Gestionar Archivos
-                    </button>
+                  {/* Se corrigió la lógica agregando paréntesis alrededor de las condiciones de rol */}
+                  {(user?.role === 'ADMIN' || user?.role === 'PRESIDENTE') && (
+                    <>
+                      <button
+                        onClick={() => {
+                          console.log(`Gestionando archivos para la sesión con ID: ${session.id}`);
+                          onManageFiles(session.id);
+                        }}
+                        className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 bg-blue-600 rounded text-sm text-white font-medium hover:bg-blue-700 transition-colors"
+                      >
+                        Gestionar Archivos
+                      </button>
+
+                      {/* Nuevo botón de Eliminar */}
+                      <button
+                        onClick={() => handleDelete(session.id)}
+                        className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 bg-red-600 rounded text-sm text-white font-medium hover:bg-red-700 transition-colors"
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          ></path>
+                        </svg>
+                        Eliminar
+                      </button>
+                    </>
                   )}
 
                   {session.videoUrl ? (
