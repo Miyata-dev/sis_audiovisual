@@ -39,7 +39,6 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
       });
   }, []);
 
-
   const descargarReporteConsolidado = async (sessionId: number, tituloSesion: string) => {
     try {
       const res = await fetch(`/api/votes/report/session?sessionId=${sessionId}`);
@@ -62,6 +61,9 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
       }
     } catch (error) {
       console.error('Error descargando reporte:', error);
+    } // <-- LLAVE DEL CATCH CORREGIDA
+  }; // <-- LLAVE DE LA FUNCIÓN CORREGIDA
+
   const handleDelete = async (id: number) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta sesión? Esta acción no se puede deshacer.')) {
       return;
@@ -184,7 +186,6 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
                 {/* Botones */}
                 <div className="flex flex-col items-end gap-2 md:ml-auto justify-center">
                   
-                  {/* Se corrigió la lógica agregando paréntesis alrededor de las condiciones de rol */}
                   {(user?.role === 'ADMIN' || user?.role === 'PRESIDENTE') && (
                     <>
                       <button
@@ -197,7 +198,6 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
                         Gestionar Archivos
                       </button>
 
-                      {/* Nuevo botón de Eliminar */}
                       <button
                         onClick={() => handleDelete(session.id)}
                         className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 bg-red-600 rounded text-sm text-white font-medium hover:bg-red-700 transition-colors"
@@ -327,4 +327,4 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
       </div>
     </div>
   );
-}
+} 
