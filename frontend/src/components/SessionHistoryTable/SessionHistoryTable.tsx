@@ -39,6 +39,29 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
       });
   }, []);
 
+
+  const descargarReporteConsolidado = async (sessionId: number, tituloSesion: string) => {
+    try {
+      const res = await fetch(`/api/votes/report/session?sessionId=${sessionId}`);
+      if (res.ok) {
+        const data = await res.json();
+        
+        const blob = new Blob([data.csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        const nombreSeguro = tituloSesion.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        link.setAttribute('download', `reporte_completo_${nombreSeguro}.csv`);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert('Error al generar el reporte de la sesión. Asegúrate de que el backend esté actualizado.');
+      }
+    } catch (error) {
+      console.error('Error descargando reporte:', error);
   const handleDelete = async (id: number) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta sesión? Esta acción no se puede deshacer.')) {
       return;
@@ -245,7 +268,6 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
                     </button>
                   )}
 
-                  {/* Acta */}
                   {session.actaUrl ? (
                     <a
                       href={`${baseUrl}${session.actaUrl}`}
@@ -275,6 +297,28 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
                       Sin acta
                     </button>
                   )}
+
+                  {/* Reporte de Votaciones Generado Automáticamente */}
+                  <button
+                    onClick={() => descargarReporteConsolidado(session.id, session.title)}
+                    className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 border border-blue-500 text-blue-600 rounded text-sm font-medium hover:bg-blue-50 transition-colors"
+                  >
+                    <svg 
+                      className="w-4 h-4 mr-2" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                      />
+                    </svg>
+                    Reporte Votos
+                  </button>
+
                 </div>
               </div>
             );

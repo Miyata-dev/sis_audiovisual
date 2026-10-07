@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    // Rutas accesibles para CUALQUIER usuario logueado (Consejeros)
+    // Rutas accesibles para CUALQUIER usuario logueado (Consejeros, Presidente, Admin)
     element: <ProtectedRoute />,
     children: [
       {
@@ -41,11 +41,16 @@ export const router = createBrowserRouter([
             path: ROUTES.SESION_EN_CURSO.path, 
             element: <SesionEnCurso /> 
           },
+          { 
+            path: ROUTES.SALA_AUDIOVISUAL.path, 
+            element: <SalaAudioVisual /> 
+          },
         ],
       },
     ],
   },
-  { //este solo lo ve el admin 
+  { 
+    // Este solo lo ve el admin 
     element: <ProtectedRoute allowedRoles={['ADMIN']} />, 
     children: [
       {
@@ -60,16 +65,12 @@ export const router = createBrowserRouter([
     ]
   },
   {
-    // PROTECCIÓN DE ROLES: Solo Admin y Presidente pueden ver estas vistas
+    // PROTECCIÓN DE ROLES: Solo Admin y Presidente pueden ver el panel de control
     element: <ProtectedRoute allowedRoles={['ADMIN', 'PRESIDENTE']} />, 
     children: [
       {
         element: <MainLayout />,
         children: [
-          { 
-            path: ROUTES.SALA_AUDIOVISUAL.path, 
-            element: <SalaAudioVisual /> 
-          },
           { 
             path: '/panel-presidente', 
             element: <PanelPresidente /> 
@@ -79,7 +80,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    //Cualquier URL no válida redirige al login
+    // Cualquier URL no válida redirige al login
     path: '*',
     element: <Navigate to={ROUTES.LOGIN.path} replace />,
   },
