@@ -14,11 +14,14 @@ interface Session {
   transcriptionUrl?: string;
 }
 
+// Agregamos el prop refreshTrigger
 interface Props {
   onManageFiles: (sessionId: number) => void;
+  refreshTrigger?: number; 
 }
 
-export default function SessionHistoryTable({ onManageFiles }: Props) {
+// Lo recibimos en los parAmetros 
+export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 }: Props) {
   const [sesiones, setSesiones] = useState<Session[]>([]);
   const [cargando, setCargando] = useState(true);
   
@@ -37,7 +40,8 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
         console.error('Error al cargar sesiones:', error);
         setCargando(false);
       });
-  }, []);
+  // Añadimos refreshTrigger 
+  }, [refreshTrigger]); 
 
   const descargarReporteConsolidado = async (sessionId: number, tituloSesion: string) => {
     try {
@@ -61,8 +65,8 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
       }
     } catch (error) {
       console.error('Error descargando reporte:', error);
-    } // <-- LLAVE DEL CATCH CORREGIDA
-  }; // <-- LLAVE DE LA FUNCIÓN CORREGIDA
+    } 
+  }; 
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar esta sesión? Esta acción no se puede deshacer.')) {
@@ -327,4 +331,4 @@ export default function SessionHistoryTable({ onManageFiles }: Props) {
       </div>
     </div>
   );
-} 
+}
