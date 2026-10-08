@@ -30,17 +30,30 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
   const baseUrl = '';
 
   useEffect(() => {
-    fetch(`${baseUrl}/api/sessions/history`)
-      .then((res) => res.json())
-      .then((data) => {
-        setSesiones(data);
-        setCargando(false);
-      })
-      .catch((error) => {
-        console.error('Error al cargar sesiones:', error);
-        setCargando(false);
-      });
-  // Añadimos refreshTrigger 
+    // Envolvemos el fetch en una función
+    const fetchSesiones = () => {
+      fetch(`${baseUrl}/api/sessions/history`)
+        .then((res) => res.json())
+        .then((data) => {
+          setSesiones(data);
+          setCargando(false);
+        })
+        .catch((error) => {
+          console.error('Error al cargar sesiones:', error);
+          setCargando(false);
+        });
+    };
+
+    // La llamamos inmediatamente al cargar
+    fetchSesiones();
+
+    // Configuramos el temporizador (3000 ms = 3 segundos)
+    const intervalId = setInterval(fetchSesiones, 3000);
+
+    // Limpiamos el temporizador si el usuario cambia de página
+    return () => clearInterval(intervalId);
+    
+  // Añadimos refreshTrigger como dependencia
   }, [refreshTrigger]); 
 
   const descargarReporteConsolidado = async (sessionId: number, tituloSesion: string) => {
