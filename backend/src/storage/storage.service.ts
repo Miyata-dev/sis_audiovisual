@@ -1,0 +1,38 @@
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Storage } from '@google-cloud/storage';
+
+@Injectable()
+export class StorageService {
+  private storage: Storage;
+  private bucketName: string;
+
+  constructor() {
+    const bucketName = process.env.GCS_BUCKET_NAME;
+    if (!bucketName) {
+      throw new Error('GCS_BUCKET_NAME environment variable es requerido');
+    }
+    this.bucketName = bucketName;
+    this.storage = new Storage({
+      projectId: process.env.GCS_PROJECT_ID,
+    });
+  }
+
+  async uploadFile(file: Express.Multer.File, folder: string): Promise<string> {
+    try {
+      const bucket = this.storage.bucket(this.bucketName);
+      const cleanFileName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+      const fileName = `${folder}/${Date.now()}-${cleanFileName}`;
+      const fileRef = bucket.file(fileName);
+
+      await fileRef.save(file.buffer, {
+        contentType: file.mimetype,
+        resumable: false, 
+      });
+
+      return `https://storage.googleapis.com/${this.bucketName}/${fileName}`;
+    } catch (error) {
+      console.error('Error en StorageService:', error);
+      throw new InternalServerErrorException('Error al subir el archivo a Google Cloud Storage');
+    }
+  }
+}

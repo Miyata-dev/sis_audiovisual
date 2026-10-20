@@ -21,19 +21,19 @@ export default function SalaHistorialReunionPage() {
       {/* Barra Lateral Izquierda (Sidebar) */}
       <aside className="w-full md:w-64 bg-white flex-shrink-0 pt-6">
         <nav className="flex flex-col">
-          {/* ... tus enlaces del sidebar ... */}
+          {/* ... enlaces del sidebar ... */}
         </nav>
       </aside>
 
       {/* Contenido Principal Derecho */}
       <main className="flex-1 p-6 md:p-10">
         <div className="max-w-5xl">
-          {/* ... tus títulos y buscador ... */}
+          {/* ...  titulos y buscador ... */}
 
-          {/* 3. Le pasamos la función a la tabla Y el nuevo refreshTrigger */}
+          {/* Le pasamos la funcion a la tabla Y el nuevo refreshTrigger */}
           <SessionHistoryTable 
             onManageFiles={(id) => setSelectedSessionId(id)} 
-            refreshTrigger={refreshCounter} // <-- ¡Aquí está la magia!
+            refreshTrigger={refreshCounter} 
           />
           
         </div>

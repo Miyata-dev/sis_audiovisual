@@ -14,25 +14,20 @@ interface Session {
   transcriptionUrl?: string;
 }
 
-// Agregamos el prop refreshTrigger
 interface Props {
   onManageFiles: (sessionId: number) => void;
   refreshTrigger?: number; 
 }
 
-// Lo recibimos en los parAmetros 
 export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 }: Props) {
   const [sesiones, setSesiones] = useState<Session[]>([]);
   const [cargando, setCargando] = useState(true);
   
   const { user } = useAuth();
 
-  const baseUrl = '';
-
   useEffect(() => {
-    // Envolvemos el fetch en una función
     const fetchSesiones = () => {
-      fetch(`${baseUrl}/api/sessions/history`)
+      fetch(`/api/sessions/history`)
         .then((res) => res.json())
         .then((data) => {
           setSesiones(data);
@@ -44,16 +39,10 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
         });
     };
 
-    // La llamamos inmediatamente al cargar
     fetchSesiones();
-
-    // Configuramos el temporizador (3000 ms = 3 segundos)
     const intervalId = setInterval(fetchSesiones, 3000);
-
-    // Limpiamos el temporizador si el usuario cambia de página
     return () => clearInterval(intervalId);
     
-  // Añadimos refreshTrigger como dependencia
   }, [refreshTrigger]); 
 
   const descargarReporteConsolidado = async (sessionId: number, tituloSesion: string) => {
@@ -124,8 +113,9 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
               minute: '2-digit',
             });
 
+            // se usa la URL directa de GCS
             const imagenFondo = session.thumbnailUrl
-              ? `${baseUrl}${session.thumbnailUrl}`
+              ? session.thumbnailUrl 
               : 'https://placehold.co/400x225/e2e8f0/475569?text=Sin+Miniatura';
 
             return (
@@ -239,7 +229,8 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
 
                   {session.videoUrl ? (
                     <a
-                      href={`${baseUrl}${session.videoUrl}`}
+                      // se usa la URL directa de GCS
+                      href={session.videoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 border border-gray-400 rounded text-sm text-gray-700 font-medium hover:bg-gray-50 transition-colors"
@@ -257,8 +248,10 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
 
                   {session.transcriptionUrl ? (
                     <a
-                      href={`${baseUrl}${session.transcriptionUrl}`}
-                      download
+                      // se usa la URL directa de GCS
+                      href={session.transcriptionUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 border border-blue-400 rounded text-sm text-blue-600 font-medium hover:bg-blue-50 transition-colors"
                     >
                       <svg
@@ -287,8 +280,10 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
 
                   {session.actaUrl ? (
                     <a
-                      href={`${baseUrl}${session.actaUrl}`}
-                      download
+                      // se usa la URL directa de GCS
+                      href={session.actaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 bg-[#4CAF50] rounded text-sm text-white font-medium hover:bg-[#43a047] transition-colors"
                     >
                       <svg
@@ -304,7 +299,7 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                         ></path>
                       </svg>
-                      Descargar acta
+                      Ver acta
                     </a>
                   ) : (
                     <button
@@ -315,7 +310,7 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
                     </button>
                   )}
 
-                  {/* Reporte de Votaciones Generado Automáticamente */}
+                  {/* Reporte de Votaciones */}
                   <button
                     onClick={() => descargarReporteConsolidado(session.id, session.title)}
                     className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 border border-blue-500 text-blue-600 rounded text-sm font-medium hover:bg-blue-50 transition-colors"
