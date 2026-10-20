@@ -1,49 +1,59 @@
 import { Controller, Get, Post, Param, Delete, UploadedFile, UseInterceptors, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SessionsService } from './sessions.service.js';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { StorageService } from '../storage/storage.service.js'; 
+import * as multer from 'multer'; 
 import ffmpeg from 'fluent-ffmpeg';
 import ffprobeStatic from 'ffprobe-static';
 import { Prisma } from '@prisma/client';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
-ffmpeg.setFfprobePath(ffprobeStatic.path); 
+ffmpeg.setFfprobePath(ffprobeStatic.path);
 
 @Controller('sessions')
 export class SessionsController {
-  constructor(private readonly sessionsService: SessionsService) {}
+  constructor(
+    private readonly sessionsService: SessionsService,
+    private readonly storageService: StorageService 
+  ) {}
 
   @Get('history')
   getHistory() {
     return this.sessionsService.getHistory();
   }
 
+  //  UPLOAD VIDEO 
   @Post(':id/upload-video')
   @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, callback) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const ext = extname(file.originalname);
-        callback(null, `video-${uniqueSuffix}${ext}`);
-      },
-    }),
+    storage: multer.memoryStorage(), // Guardar en RAM
+    limits: { fileSize: 500 * 1024 * 1024 }, // Limite de 500MB 
   }))
   async uploadVideo(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
-    const videoUrl = `/uploads/${file.filename}`;
-    const filePath = file.path; // Ruta donde se guardo el video 
+    if (!file) throw new NotFoundException('No se envió ningún archivo de video');
 
-    // se extrae la duracion en segundos usando ffprobe
+    // Subir a GCS usando nuestro StorageService
+    const publicVideoUrl = await this.storageService.uploadFile(file, 'videos');
+
+    // Extraer duración usando un archivo temporal respetando la extension original
+    const ext = path.extname(file.originalname) || '.mp4';
+    const tempFilePath = path.join(os.tmpdir(), `temp-video-${Date.now()}${ext}`);
+    fs.writeFileSync(tempFilePath, file.buffer); 
+
     const durationSeconds = await new Promise<number>((resolve) => {
-      ffmpeg.ffprobe(filePath, (err, metadata) => {
+      ffmpeg.ffprobe(tempFilePath, (err, metadata) => {
         if (err || !metadata || !metadata.format || !metadata.format.duration) {
           console.error("Error al leer el video:", err);
-          resolve(0); // Si falla, devuolve 0
+          resolve(0);
         } else {
           resolve(Number(metadata.format.duration));
         }
       });
     });
+
+    // Borrar el archivo temporal para no llenar el disco del servidor
+    fs.unlinkSync(tempFilePath); 
 
     let durationStr = "--:--";
     if (durationSeconds > 0) {
@@ -58,57 +68,47 @@ export class SessionsController {
         : `${format(minutes)}:${format(seconds)}`;
     }
 
-    // se actualiza la URL y la Duracion calculada en Prisma
-    return this.sessionsService.updateVideoUrl(Number(id), videoUrl, durationStr);
-  }
-  @Post(':id/upload-acta')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, callback) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      const ext = extname(file.originalname); // Extrae si es .txt, .pdf o .docx
-      callback(null, `acta-${uniqueSuffix}${ext}`);
-      },
-    }),
-  }))
-  async uploadActa(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
-    const actaUrl = `/uploads/${file.filename}`;
-    
-    return this.sessionsService.updateActaUrl(Number(id), actaUrl);
-  }
-@Post(':id/upload-transcription')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, callback) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const ext = extname(file.originalname);
-        callback(null, `transcription-${uniqueSuffix}${ext}`); 
-      },
-    }),
-  }))
-  async uploadTranscription(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
-    const transcriptionUrl = `/uploads/${file.filename}`;
-    
-    return this.sessionsService.updateTranscriptionUrl(Number(id), transcriptionUrl);
-  }
-  @Post(':id/upload-thumbnail')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, callback) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const ext = extname(file.originalname); //  extensiones como .jpg o .png
-        callback(null, `thumbnail-${uniqueSuffix}${ext}`); 
-      },
-    }),
-  }))
-  async uploadThumbnail(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
-    const thumbnailUrl = `/uploads/${file.filename}`;
-    return this.sessionsService.updateThumbnailUrl(Number(id), thumbnailUrl);
+    // Actualizar Prisma con la URL de la nube y la duracion
+    return this.sessionsService.updateVideoUrl(Number(id), publicVideoUrl, durationStr);
   }
 
+  //  UPLOAD ACTA 
+  @Post(':id/upload-acta')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: multer.memoryStorage(), // Guardar en RAM
+  }))
+  async uploadActa(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new NotFoundException('No se envió ninguna acta');
+    
+    const publicUrl = await this.storageService.uploadFile(file, 'actas');
+    return this.sessionsService.updateActaUrl(Number(id), publicUrl);
+  }
+
+  //  UPLOAD TRANSCRIPTION 
+  @Post(':id/upload-transcription')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: multer.memoryStorage(), // Guardar en RAM
+  }))
+  async uploadTranscription(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new NotFoundException('No se envió transcripción');
+
+    const publicUrl = await this.storageService.uploadFile(file, 'transcriptions');
+    return this.sessionsService.updateTranscriptionUrl(Number(id), publicUrl);
+  }
+
+  //  UPLOAD THUMBNAIL 
+  @Post(':id/upload-thumbnail')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: multer.memoryStorage(), 
+  }))
+  async uploadThumbnail(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new NotFoundException('No se envió miniatura');
+
+    const publicUrl = await this.storageService.uploadFile(file, 'thumbnails');
+    return this.sessionsService.updateThumbnailUrl(Number(id), publicUrl);
+  }
+
+  // DELETE SESSION 
   @Delete(':id')
   async deleteSession(@Param('id') id: string) {
     try {
