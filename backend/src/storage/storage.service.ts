@@ -26,13 +26,38 @@ export class StorageService {
 
       await fileRef.save(file.buffer, {
         contentType: file.mimetype,
-        resumable: false, 
+        resumable: false,
       });
 
-      return `https://storage.googleapis.com/${this.bucketName}/${fileName}`;
+      return `/api/streams/${fileName}`;
     } catch (error) {
       console.error('Error en StorageService:', error);
       throw new InternalServerErrorException('Error al subir el archivo a Google Cloud Storage');
     }
+  }
+
+  // Tamaño y tipo del objeto. Devuelve null si no existe.
+  async getFileInfo(objectName: string) {
+    try {
+      const [meta] = await this.storage
+        .bucket(this.bucketName)
+        .file(objectName)
+        .getMetadata();
+      return {
+        size: Number(meta.size),
+        contentType: meta.contentType as string | undefined,
+      };
+    } catch (error) {
+      if ((error as { code?: number }).code === 404) return null;
+      throw error;
+    }
+  }
+
+  // Lee el archivo completo o solo un rango de bytes 
+  createReadStream(objectName: string, start?: number, end?: number) {
+    const file = this.storage.bucket(this.bucketName).file(objectName);
+    return start === undefined
+      ? file.createReadStream()
+      : file.createReadStream({ start, end });
   }
 }
