@@ -1,14 +1,16 @@
-FROM node:22-slim
-
+FROM node:22-slim AS builder
 WORKDIR /app
-
-RUN npm install -g npm@11
-
-COPY package.json ./
+COPY package.json package-lock.json ./
 RUN npm install
-
 COPY . .
+RUN npm run build
 
-EXPOSE 5173
+FROM nginxinc/nginx-unprivileged:stable-alpine AS runner
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Exponer puerto 8080 (el puerto por defecto de la imagen unprivileged)
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -q --spider http://localhost:8080/ || exit 1
