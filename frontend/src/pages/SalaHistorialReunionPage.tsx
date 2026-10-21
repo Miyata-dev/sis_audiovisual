@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import SessionHistoryTable from '../components/SessionHistoryTable/SessionHistoryTable';
 import { AdminUploadSection } from '../components/AdminUploadSection/AdminUploadSection';
 
