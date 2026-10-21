@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/router/routes';
 import { useAuth } from '../../contexts/AuthContext';

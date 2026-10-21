@@ -1,4 +1,3 @@
-import React from 'react';
 import PanelConsejo from '../components/PanelConsejo/PanelConsejo';
 
 export default function SesionEnCursoPage() {
