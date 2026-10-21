@@ -5,9 +5,10 @@ import { LOCAL_STORAGE_KEYS } from '../../constants/localStorage/keys';
 
 interface Props {
   sessionId: number;
+  onUploadSuccess?: () => void; 
 }
 
-export const AdminUploadSection = ({ sessionId }: Props) => {
+export const AdminUploadSection = ({ sessionId, onUploadSuccess }: Props) => {
   const { user } = useAuth();
   const [uploading, setUploading] = useState<string | null>(null);
   const [message, setMessage] = useState('');
@@ -22,7 +23,7 @@ export const AdminUploadSection = ({ sessionId }: Props) => {
     setMessage('');
 
     const formData = new FormData();
-    formData.append('file', file); // 'file' debe coincidir con el FileInterceptor de NestJS
+    formData.append('file', file);
 
     const token = localStorage.getItem(LOCAL_STORAGE_KEYS.TOKEN);
 
@@ -34,6 +35,11 @@ export const AdminUploadSection = ({ sessionId }: Props) => {
         }
       });
       setMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} subido exitosamente.`);
+      
+      if (onUploadSuccess) {
+        onUploadSuccess();
+      }
+
     } catch (error) {
       console.error(`Error subiendo ${type}:`, error);
       setMessage(`Error al subir ${type}. Revisa la consola.`);
@@ -53,7 +59,7 @@ export const AdminUploadSection = ({ sessionId }: Props) => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Video de la Sesión</label>
           <input 
             type="file" 
-            accept="video/*" 
+            accept="video/*,.mkv" 
             onChange={(e) => handleUpload(e, 'video')} 
             disabled={uploading !== null}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"

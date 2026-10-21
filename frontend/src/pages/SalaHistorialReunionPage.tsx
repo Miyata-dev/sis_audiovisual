@@ -4,53 +4,44 @@ import { AdminUploadSection } from '../components/AdminUploadSection/AdminUpload
 
 export default function SalaHistorialReunionPage() {
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
-  
-  // Creamos el estado para forzar la recarga
   const [refreshCounter, setRefreshCounter] = useState(0);
 
-  // Función para cerrar la modal
   const handleCloseModal = () => {
     setSelectedSessionId(null);
-    // Al cerrar la modal, sumamos 1 al contador para que la tabla se refresque sola
+    setRefreshCounter(prev => prev + 1);
+  };
+
+  const handleUploadSuccess = () => {
     setRefreshCounter(prev => prev + 1);
   };
 
   return (
     <div className="flex flex-col md:flex-row min-h-[calc(100vh-80px)] bg-[#f8f9fa] border-t border-gray-200">
       
-      {/* Barra Lateral Izquierda (Sidebar) */}
       <aside className="w-full md:w-64 bg-white flex-shrink-0 pt-6">
         <nav className="flex flex-col">
-          {/* ... enlaces del sidebar ... */}
+          {/* enlaces del sidebar */}
         </nav>
       </aside>
 
-      {/* Contenido Principal Derecho */}
       <main className="flex-1 p-6 md:p-10">
         <div className="max-w-5xl">
-          {/* ...  titulos y buscador ... */}
-
-          {/* Le pasamos la funcion a la tabla Y el nuevo refreshTrigger */}
           <SessionHistoryTable 
             onManageFiles={(id) => setSelectedSessionId(id)} 
             refreshTrigger={refreshCounter} 
           />
-          
         </div>
       </main>
 
-      {/* MODAL */}
       {selectedSessionId && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-          onClick={handleCloseModal} // Cierra al hacer clic en el fondo oscuro
+          onClick={handleCloseModal}
         >
-          {/* Caja de la Modal */}
           <div 
             className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative animate-fade-in"
-            onClick={(e) => e.stopPropagation()} // Evita que se cierre al hacer clic dentro de la caja
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Botón de cerrar (X) */}
             <button 
               onClick={handleCloseModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-red-500 font-bold text-xl z-10 transition-colors"
@@ -59,10 +50,11 @@ export default function SalaHistorialReunionPage() {
               ✕
             </button>
 
-            {/* Contenido de la Modal */}
             <div className="p-2">
-              {/* El AdminUploadSection ya trae sus propios estilos y padding */}
-              <AdminUploadSection sessionId={selectedSessionId} />
+              <AdminUploadSection 
+                sessionId={selectedSessionId} 
+                onUploadSuccess={handleUploadSuccess} 
+              />
             </div>
           </div>
         </div>
