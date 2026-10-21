@@ -15,12 +15,10 @@ type DashboardData = {
 export default function PanelPresidente() {
   const [data, setData] = useState<DashboardData>({ evento: null, resultados: {}, asistentes: [], solicitudes: [], historial: [] });
   
-  // Estados para Sesiones y Temas
   const [sesiones, setSesiones] = useState<Sesion[]>([]);
   const [sesionSeleccionada, setSesionSeleccionada] = useState<number | string>('');
   const [nuevoTema, setNuevoTema] = useState(''); 
   
-  // ESTADOS PARA EL MODAL DE CREAR SESIÓN
   const [mostrarModalSesion, setMostrarModalSesion] = useState(false);
   const [nuevaSesionTitulo, setNuevaSesionTitulo] = useState('');
   const [nuevaSesionTema, setNuevaSesionTema] = useState('');
@@ -144,6 +142,7 @@ export default function PanelPresidente() {
       console.error('Error al finalizar sesión:', error);
     }
   };
+  
   const descargarReporte = async (votingEventId: number, tituloTema: string) => {
     try {
       const res = await fetch(`/api/votes/report?votingEventId=${votingEventId}`);
@@ -253,6 +252,9 @@ export default function PanelPresidente() {
               onChange={manejarCambioSesion}
               className="bg-[#144d18] border border-[#4CAF50] text-lg md:text-xl font-semibold text-white rounded p-1.5 focus:outline-none focus:ring-2 focus:ring-[#a5d6a7] cursor-pointer shadow-sm appearance-none pr-8 relative"
             >
+              {/* Agregamos una opcion por defecto para evitar un bug */}
+              <option value="" disabled>-- Opciones de sesión --</option>
+
               {sesiones.map(sesion => (
                 <option key={sesion.id} value={sesion.id}>{sesion.title}</option>
               ))}
@@ -263,7 +265,7 @@ export default function PanelPresidente() {
           <div className="text-[#a5d6a7] mt-2 text-sm flex items-center gap-2">
             Estado: 
             <span className={`px-2 py-0.5 rounded text-xs font-bold ${estaFinalizada ? 'bg-red-600 text-white' : 'bg-green-500 text-white'}`}>
-              {sesionActual ? sesionActual.status : 'Cargando...'}
+              {sesionActual ? sesionActual.status : (sesiones.length === 0 ? 'Sin Sesiones' : 'Cargando...')}
             </span> 
             | Gobernador Regional del Biobío
             
@@ -316,7 +318,7 @@ export default function PanelPresidente() {
               <p className="text-gray-500 mb-8 text-center max-w-md">No hay ninguna votación activa. Ingresa el nombre del tema a discutir para abrir la asistencia, la cola de palabra y el panel de votación a los consejeros.</p>
               <div className="w-full max-w-md flex flex-col gap-3">
                 <input type="text" value={nuevoTema} onChange={(e) => setNuevoTema(e.target.value)} placeholder="Ej: Aprobación Presupuesto Educación 2027" className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#4CAF50]"/>
-                <button onClick={iniciarNuevaVotacion} disabled={!nuevoTema.trim()} className="w-full bg-[#1b5e20] hover:bg-[#144d18] text-white font-bold py-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Abrir Tema y Votación</button>
+                <button onClick={iniciarNuevaVotacion} disabled={!nuevoTema.trim() || !sesionSeleccionada || sesionSeleccionada === ''} className="w-full bg-[#1b5e20] hover:bg-[#144d18] text-white font-bold py-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Abrir Tema y Votación</button>
               </div>
             </div>
           )}
