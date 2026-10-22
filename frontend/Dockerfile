@@ -8,7 +8,7 @@ RUN npm run build
 FROM nginxinc/nginx-unprivileged:stable-alpine AS runner
 
 COPY --from=builder /app/dist /usr/share/nginx/html
-
+COPY default.conf /etc/nginx/conf.d/default.conf
 # Exponer puerto 8080 (el puerto por defecto de la imagen unprivileged)
 EXPOSE 8080
 
