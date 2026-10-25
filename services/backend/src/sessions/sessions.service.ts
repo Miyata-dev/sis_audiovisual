@@ -17,6 +17,12 @@ export class SessionsService {
     });
   }
 
+  async getSessionById(id: number) {
+    return await prisma.session.findUnique({
+      where: { id },
+    });
+  }
+
   async updateVideoUrl(id: number, videoUrl: string, duration: string) {
     return await prisma.session.update({
       where: { id },

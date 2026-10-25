@@ -50,36 +50,18 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  redis:
-    image: redis:7-alpine
-    container_name: sis-audiovisual-redis
+  ai-service:
+    build:
+      context: ./services/ai-service 
+    container_name: sis-audiovisual-ai
     restart: always
-    volumes:
-      - redis_data:/data
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-  # 5. AI SERVICE 
-  # ai-service:
-  #   build:
-  #     context: ./services/ai-service 
-  #   container_name: sis-audiovisual-ai
-  #   env_file:
-  #     - ./services/ai-service/.env
-  #   restart: always
-  #   networks:
-  #     - app-network
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
 
 networks:
   app-network:
