@@ -36,7 +36,7 @@ export class StorageService {
     }
   }
 
-  // Tamaño y tipo del objeto. Devuelve null si no existe.
+  // Tamano y tipo del objeto. Devuelve null si no existe
   async getFileInfo(objectName: string) {
     try {
       const [meta] = await this.storage
@@ -61,7 +61,7 @@ export class StorageService {
       : file.createReadStream({ start, end });
   }
 
-  // URL temporal de solo lectura (para que el servicio de IA descargue el video)
+  // URL temporal de solo lectura, para que el servicio de IA descargue el video
   async getSignedReadUrl(objectName: string, minutes = 120): Promise<string> {
     const [url] = await this.storage
       .bucket(this.bucketName)
@@ -72,5 +72,26 @@ export class StorageService {
         expires: Date.now() + minutes * 60 * 1000,
       });
     return url;
+  }
+
+  // URL temporal para que el navegador suba un archivo directo al bucket
+  async createSignedUploadUrl(
+    folder: string,
+    originalName: string,
+    contentType: string,
+    minutes = 60,
+  ): Promise<{ uploadUrl: string; objectName: string }> {
+    const cleanFileName = originalName.replace(/[^a-zA-Z0-9.]/g, '_');
+    const objectName = `${folder}/${Date.now()}-${cleanFileName}`;
+    const [uploadUrl] = await this.storage
+      .bucket(this.bucketName)
+      .file(objectName)
+      .getSignedUrl({
+        version: 'v4',
+        action: 'write',
+        expires: Date.now() + minutes * 60 * 1000,
+        contentType,
+      });
+    return { uploadUrl, objectName };
   }
 }
