@@ -53,11 +53,24 @@ export class StorageService {
     }
   }
 
-  // Lee el archivo completo o solo un rango de bytes 
+  // Lee el archivo completo o solo un rango de bytes
   createReadStream(objectName: string, start?: number, end?: number) {
     const file = this.storage.bucket(this.bucketName).file(objectName);
     return start === undefined
       ? file.createReadStream()
       : file.createReadStream({ start, end });
+  }
+
+  // URL temporal de solo lectura (para que el servicio de IA descargue el video)
+  async getSignedReadUrl(objectName: string, minutes = 120): Promise<string> {
+    const [url] = await this.storage
+      .bucket(this.bucketName)
+      .file(objectName)
+      .getSignedUrl({
+        version: 'v4',
+        action: 'read',
+        expires: Date.now() + minutes * 60 * 1000,
+      });
+    return url;
   }
 }
