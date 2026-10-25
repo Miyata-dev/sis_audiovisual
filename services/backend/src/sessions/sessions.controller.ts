@@ -6,6 +6,7 @@ import * as multer from 'multer';
 import ffmpeg from 'fluent-ffmpeg';
 import ffprobeStatic from 'ffprobe-static';
 import { Prisma } from '@prisma/client';
+import axios from 'axios';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -25,18 +26,16 @@ export class SessionsController {
   }
 
   //  UPLOAD VIDEO 
-  @Post(':id/upload-video')
+   @Post(':id/upload-video')
   @UseInterceptors(FileInterceptor('file', {
-    storage: multer.memoryStorage(), // Guardar en RAM
-    limits: { fileSize: 500 * 1024 * 1024 }, // Limite de 500MB 
+    storage: multer.memoryStorage(), 
+    limits: { fileSize: 500 * 1024 * 1024 }, 
   }))
   async uploadVideo(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
     if (!file) throw new NotFoundException('No se envió ningún archivo de video');
 
-    // Subir a GCS usando nuestro StorageService
     const publicVideoUrl = await this.storageService.uploadFile(file, 'videos');
 
-    // Extraer duración usando un archivo temporal respetando la extension original
     const ext = path.extname(file.originalname) || '.mp4';
     const tempFilePath = path.join(os.tmpdir(), `temp-video-${Date.now()}${ext}`);
     fs.writeFileSync(tempFilePath, file.buffer); 
@@ -44,15 +43,12 @@ export class SessionsController {
     const durationSeconds = await new Promise<number>((resolve) => {
       ffmpeg.ffprobe(tempFilePath, (err, metadata) => {
         if (err || !metadata || !metadata.format || !metadata.format.duration) {
-          console.error("Error al leer el video:", err);
           resolve(0);
         } else {
           resolve(Number(metadata.format.duration));
         }
       });
     });
-
-    // Borrar el archivo temporal para no llenar el disco del servidor
     fs.unlinkSync(tempFilePath); 
 
     let durationStr = "--:--";
@@ -60,22 +56,24 @@ export class SessionsController {
       const hours = Math.floor(durationSeconds / 3600);
       const minutes = Math.floor((durationSeconds % 3600) / 60);
       const seconds = Math.floor(durationSeconds % 60);
-      
       const format = (num: number) => num.toString().padStart(2, '0');
-      
       durationStr = hours > 0 
         ? `${format(hours)}:${format(minutes)}:${format(seconds)}` 
         : `${format(minutes)}:${format(seconds)}`;
     }
 
-    // Actualizar Prisma con la URL de la nube y la duracion
-    return this.sessionsService.updateVideoUrl(Number(id), publicVideoUrl, durationStr);
+    const sessionActualizada = await this.sessionsService.updateVideoUrl(Number(id), publicVideoUrl, durationStr);
+
+    this.transcribeVideo(id).catch(error => {
+      console.error(`Error en transcripción automática para sesión ${id}:`, error);
+    });
+
+    return sessionActualizada;
   }
 
-  //  UPLOAD ACTA 
   @Post(':id/upload-acta')
   @UseInterceptors(FileInterceptor('file', {
-    storage: multer.memoryStorage(), // Guardar en RAM
+    storage: multer.memoryStorage(), 
   }))
   async uploadActa(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
     if (!file) throw new NotFoundException('No se envió ninguna acta');
@@ -120,6 +118,47 @@ export class SessionsController {
         }
       }
       throw new InternalServerErrorException('Error interno al intentar eliminar la sesión');
+    }
+  }
+
+  @Post(':id/transcribe-video')
+  async transcribeVideo(@Param('id') id: string) {
+    const session = await this.sessionsService.getSessionById(Number(id));
+    if (!session || !session.videoUrl) {
+      throw new NotFoundException('La sesión no tiene un video asociado');
+    }
+
+    try {
+      const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://sis-audiovisual-ai:8000/transcribe-url';
+      
+      let urlAbsoluta = session.videoUrl;
+      if (urlAbsoluta.startsWith('/')) {
+        urlAbsoluta = `http://sis-audiovisual-backend:3000${urlAbsoluta}`; 
+      }
+
+      console.log('Enviando a IA URL absoluta:', urlAbsoluta);
+
+      const aiResponse = await axios.post(aiServiceUrl, {
+        video_url: urlAbsoluta 
+      }, { timeout: 600000 }); 
+
+      const transcripcionTexto: string = aiResponse.data.text;
+
+      const buffer = Buffer.from(transcripcionTexto, 'utf-8');
+      const fakeMulterFile = {
+        fieldname: 'file',
+        originalname: `transcripcion-sesion-${id}.txt`,
+        encoding: '7bit',
+        mimetype: 'text/plain',
+        buffer: buffer,
+        size: buffer.length,
+      } as Express.Multer.File;
+
+      const publicUrl = await this.storageService.uploadFile(fakeMulterFile, 'transcriptions');
+      return await this.sessionsService.updateTranscriptionUrl(Number(id), publicUrl);
+
+    } catch (error) {
+      throw new InternalServerErrorException('Error al intentar transcribir el video');
     }
   }
 }
