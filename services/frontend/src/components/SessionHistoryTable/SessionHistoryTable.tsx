@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext'; 
+import { AIChatModal } from "../IAChatModal/AIChatModal"
 
 interface Session {
   id: number;
@@ -22,7 +23,8 @@ interface Props {
 export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 }: Props) {
   const [sesiones, setSesiones] = useState<Session[]>([]);
   const [cargando, setCargando] = useState(true);
-  
+  const [chatSession, setChatSession] = useState<{ id: number, title: string } | null>(null);
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -227,6 +229,19 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
                     </>
                   )}
 
+                  {/* BTN DE IA */}
+                  {session.videoUrl && session.transcriptionUrl && (
+                    <button
+                      onClick={() => setChatSession({ id: session.id, title: session.title })}
+                      className="flex items-center justify-center w-full md:w-40 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded text-sm text-white font-medium hover:from-purple-700 hover:to-blue-700 transition-colors shadow-sm"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                      </svg>
+                      Preguntar IA
+                    </button>
+                  )}
+
                   {session.videoUrl ? (
                     <a
                       // se usa la URL directa de GCS
@@ -337,6 +352,15 @@ export default function SessionHistoryTable({ onManageFiles, refreshTrigger = 0 
           })
         )}
       </div>
+
+      {chatSession && (
+        <AIChatModal 
+          sessionId={chatSession.id} 
+          sessionTitle={chatSession.title} 
+          onClose={() => setChatSession(null)} 
+        />
+      )}
+
     </div>
   );
 }

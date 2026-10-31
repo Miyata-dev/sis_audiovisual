@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, Delete, UploadedFile, UseInterceptors, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Delete, UploadedFile, UseInterceptors, NotFoundException, BadRequestException, InternalServerErrorException, HttpException, HttpStatus } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SessionsService } from './sessions.service.js';
 import { StorageService } from '../storage/storage.service.js';
@@ -243,6 +243,51 @@ export class SessionsController {
     } catch (error) {
       console.error('Error al transcribir el video:', error);
       throw new InternalServerErrorException('Error al intentar transcribir el video');
+    }
+  }
+
+ @Post(':id/chat')
+  async chatWithSession(@Param('id') id: string, @Body('pregunta') pregunta: string) {
+    try {
+      const session = await this.sessionsService.getSessionById(Number(id));
+
+      if (!session || !session.transcriptionUrl) {
+        throw new HttpException('No hay transcripción disponible para esta sesión', HttpStatus.BAD_REQUEST);
+      }
+
+      const baseUrl = 'http://127.0.0.1:3000'; 
+      const fullUrl = session.transcriptionUrl.startsWith('http') 
+        ? session.transcriptionUrl 
+        : `${baseUrl}${session.transcriptionUrl}`;
+
+      // Descargar el texto usando la URL
+      const responseTexto = await fetch(fullUrl);
+      if (!responseTexto.ok) throw new Error('No se pudo descargar la transcripción');
+      const transcripcionTexto = await responseTexto.text();
+
+      // Enviar al microservicio de IA 
+      const responseIA = await fetch('http://ai-service:8000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pregunta: pregunta,
+          contexto_transcripcion: transcripcionTexto
+        }),
+        signal: AbortSignal.timeout(120000) 
+      });
+
+      if (!responseIA.ok) {
+        throw new Error('El microservicio de IA falló');
+      }
+
+      const dataIA = await responseIA.json();
+      
+      return { respuesta: dataIA.respuesta };
+
+    } catch (error) {
+      console.error('Error en chat:', error);
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Error al consultar a la IA', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
