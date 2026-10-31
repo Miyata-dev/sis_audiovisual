@@ -54,6 +54,20 @@ services:
     container_name: sis-audiovisual-ai
     env_file:
       - ./services/ai-service/.env
+    environment:
+      - OLLAMA_URL=http://ollama:11434  
+      - OLLAMA_MODEL=llama3.2:3b
+    restart: always
+    networks:
+      - app-network
+
+  ollama:
+    build:
+      context: ./services/ollama
+      dockerfile: Dockerfile
+    container_name: sis-audiovisual-ollama
+    volumes:
+      - ollama_data:/root/.ollama 
     restart: always
     networks:
       - app-network
@@ -64,3 +78,4 @@ networks:
 
 volumes:
   redis_data:
+  ollama_data:  

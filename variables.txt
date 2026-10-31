@@ -1,0 +1,39 @@
+export PROJECT_ID="project-267f0f4e-6917-4bab-9eb"
+export REGION="southamerica-west1"
+export REPO="sis-audiovisual"
+
+-- autenticar
+
+
+gcloud auth configure-docker $REGION-docker.pkg.dev
+
+# 2. Construir y subir la imagen
+docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/ollama:1.0 ./services/ollama
+docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/ollama:1.0
+
+
+-- Desplegar Ollama en Cloud Run y capturar su URL
+
+
+gcloud run deploy ollama \
+  --image $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/ollama:1.0 \
+  --memory 4Gi --cpu 2 --allow-unauthenticated \
+  --region $REGION
+
+export OLLAMA_URL=$(gcloud run services describe ollama --platform managed --region $REGION --format 'value(status.url)')
+echo "La URL de Ollama es: $OLLAMA_URL"
+
+
+-- construir la IA 
+
+
+# 1. Construir y subir tu ai-service
+docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/ia:1.0 ./services/ai-service
+docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/ia:1.0
+
+# 2. Desplegar en Cloud Run pasándole las variables
+gcloud run deploy ai-service \
+  --image $REGION-docker.pkg.dev/$PROJECT_ID/$REPO/ia:1.0 \
+  --memory 2Gi --cpu 1 --allow-unauthenticated \
+  --region $REGION \
+  --set-env-vars OLLAMA_URL=$OLLAMA_URL,OLLAMA_MODEL=llama3.2:3b
