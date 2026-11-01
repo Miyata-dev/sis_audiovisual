@@ -255,13 +255,18 @@ export class SessionsController {
         throw new HttpException('No hay transcripción disponible para esta sesión', HttpStatus.BAD_REQUEST);
       }
 
-      const backendUrl = process.env.BACKEND_URL || 'http://sis-audiovisual-backend:3000'; 
-      const fullUrl = session.transcriptionUrl.startsWith('http') 
-        ? session.transcriptionUrl 
-        : `${backendUrl}${session.transcriptionUrl}`;
+      const objectName = session.transcriptionUrl.replace(/^\/api\/streams\//, '');
 
-      const responseTexto = await fetch(fullUrl);
-      if (!responseTexto.ok) throw new Error('No se pudo descargar la transcripción');
+      let textUrl: string;
+      try {
+        textUrl = await this.storageService.getSignedReadUrl(objectName);
+      } catch (e) {
+        textUrl = `http://127.0.0.1:3000${session.transcriptionUrl}`;
+      }
+
+      const responseTexto = await fetch(textUrl);
+      if (!responseTexto.ok) throw new Error(`Fallo al descargar transcripción. Status: ${responseTexto.status}`);
+      
       const transcripcionTexto = await responseTexto.text();
 
       const dataIA = await this.callAiService<{ respuesta: string }>('/chat', {
