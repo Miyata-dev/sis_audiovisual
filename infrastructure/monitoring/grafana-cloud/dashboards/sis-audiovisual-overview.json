@@ -128,7 +128,7 @@
           "aliasBy": "{{resource.label.service_name}}",
           "datasource": {
             "type": "stackdriver",
-            "uid": "GCM"
+            "uid": "gcm"
           },
           "queryType": "timeSeriesList",
           "refId": "A",
@@ -156,7 +156,7 @@
     {
       "datasource": {
         "type": "stackdriver",
-        "uid": "GCM"
+        "uid": "gcm"
       },
       "fieldConfig": {
         "defaults": {
@@ -238,7 +238,7 @@
           "aliasBy": "{{resource.label.service_name}}",
           "datasource": {
             "type": "stackdriver",
-            "uid": "GCM"
+            "uid": "gcm"
           },
           "queryType": "timeSeriesList",
           "refId": "A",
@@ -270,7 +270,7 @@
     {
       "datasource": {
         "type": "stackdriver",
-        "uid": "GCM"
+        "uid": "gcm"
       },
       "fieldConfig": {
         "defaults": {
@@ -353,7 +353,7 @@
           "aliasBy": "{{resource.label.service_name}}",
           "datasource": {
             "type": "stackdriver",
-            "uid": "GCM"
+            "uid": "gcm"
           },
           "queryType": "timeSeriesList",
           "refId": "A",
@@ -381,7 +381,7 @@
     {
       "datasource": {
         "type": "stackdriver",
-        "uid": "GCM"
+        "uid": "gcm"
       },
       "fieldConfig": {
         "defaults": {
@@ -464,7 +464,7 @@
           "aliasBy": "{{resource.label.service_name}}",
           "datasource": {
             "type": "stackdriver",
-            "uid": "GCM"
+            "uid": "gcm"
           },
           "queryType": "timeSeriesList",
           "refId": "A",
@@ -492,7 +492,7 @@
     {
       "datasource": {
         "type": "stackdriver",
-        "uid": "GCM"
+        "uid": "gcm"
       },
       "fieldConfig": {
         "defaults": {
@@ -575,7 +575,7 @@
           "aliasBy": "{{resource.label.service_name}}",
           "datasource": {
             "type": "stackdriver",
-            "uid": "GCM"
+            "uid": "gcm"
           },
           "queryType": "timeSeriesList",
           "refId": "A",
@@ -603,7 +603,7 @@
     {
       "datasource": {
         "type": "stackdriver",
-        "uid": "GCM"
+        "uid": "gcm"
       },
       "fieldConfig": {
         "defaults": {
@@ -686,7 +686,7 @@
           "aliasBy": "{{resource.label.service_name}}",
           "datasource": {
             "type": "stackdriver",
-            "uid": "GCM"
+            "uid": "gcm"
           },
           "queryType": "timeSeriesList",
           "refId": "A",
