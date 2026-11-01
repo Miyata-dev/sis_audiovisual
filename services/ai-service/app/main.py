@@ -84,17 +84,13 @@ class ChatRequest(BaseModel):
     pregunta: str
     contexto_transcripcion: str # Aquí el frontend manda el texto transcrito
 
-# --- NUEVO: Endpoint del Chatbot ---
 @app.post("/chat")
 async def chat_con_transcripcion(request: ChatRequest):
     # Prompt de sistema: Le decimos al LLM cómo debe comportarse
     prompt = f"""
-    Eres un asistente virtual experto en el Consejo Regional del Biobío.
-    Tu única fuente de información es la siguiente transcripción de la sesión.
-    
-    Si la respuesta a la pregunta del usuario NO está en la transcripción, di amablemente: 
-    "Lo siento, esa información no se discutió en esta sesión".
-    No inventes información (no alucines).
+    Eres un asistente experto. Utiliza la transcripción adjunta para responder.
+    Si el usuario pide un resumen, sintetiza los temas principales. 
+    Si la pregunta es sobre un dato específico que NO aparece, usa la frase de rechazo.
 
     --- INICIO DE LA TRANSCRIPCIÓN ---
     {request.contexto_transcripcion}
