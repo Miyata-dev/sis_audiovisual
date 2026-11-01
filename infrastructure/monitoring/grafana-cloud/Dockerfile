@@ -1,4 +1,4 @@
-FROM grafana/grafana:11.3.0
+FROM grafana/grafana:11.6.0
 
 LABEL maintainer="equipo-sis-audiovisual" \
       description="Grafana conectado a Google Cloud Monitoring" \
