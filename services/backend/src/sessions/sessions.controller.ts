@@ -246,7 +246,7 @@ export class SessionsController {
     }
   }
 
- @Post(':id/chat')
+  @Post(':id/chat')
   async chatWithSession(@Param('id') id: string, @Body('pregunta') pregunta: string) {
     try {
       const session = await this.sessionsService.getSessionById(Number(id));
@@ -255,33 +255,20 @@ export class SessionsController {
         throw new HttpException('No hay transcripción disponible para esta sesión', HttpStatus.BAD_REQUEST);
       }
 
-      const baseUrl = 'http://127.0.0.1:3000'; 
+      const backendUrl = process.env.BACKEND_URL || 'http://sis-audiovisual-backend:3000'; 
       const fullUrl = session.transcriptionUrl.startsWith('http') 
         ? session.transcriptionUrl 
-        : `${baseUrl}${session.transcriptionUrl}`;
+        : `${backendUrl}${session.transcriptionUrl}`;
 
-      // Descargar el texto usando la URL
       const responseTexto = await fetch(fullUrl);
       if (!responseTexto.ok) throw new Error('No se pudo descargar la transcripción');
       const transcripcionTexto = await responseTexto.text();
 
-      // Enviar al microservicio de IA 
-      const responseIA = await fetch('http://ai-service:8000/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pregunta: pregunta,
-          contexto_transcripcion: transcripcionTexto
-        }),
-        signal: AbortSignal.timeout(120000) 
+      const dataIA = await this.callAiService<{ respuesta: string }>('/chat', {
+        pregunta: pregunta,
+        contexto_transcripcion: transcripcionTexto
       });
 
-      if (!responseIA.ok) {
-        throw new Error('El microservicio de IA falló');
-      }
-
-      const dataIA = await responseIA.json();
-      
       return { respuesta: dataIA.respuesta };
 
     } catch (error) {
