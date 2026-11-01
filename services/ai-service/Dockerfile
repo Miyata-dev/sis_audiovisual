@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-LABEL maintainer="Tu Nombre <tu.correo@utalca.cl>" \
+LABEL maintainer="equipo-sis-audiovisual" \
       description="Microservicio de Inteligencia Artificial" \
       version="1.0.0"
 
