@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 import { GoogleAuth } from 'google-auth-library';
 import axios from 'axios';
 import PDFDocument from 'pdfkit';
+import { PDFParse } from 'pdf-parse';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -79,7 +80,20 @@ export class SessionsController {
     });
   }
 
-  // Endpoints 
+  // Extrae el texto de una transcripcion: PDF (nuevas) o TXT (sesiones viejas)
+  private async extractTranscriptionText(objectName: string, buffer: Buffer): Promise<string> {
+    if (!objectName.toLowerCase().endsWith('.pdf')) {
+      return buffer.toString('utf-8');
+    }
+
+    const parser = new PDFParse({ data: buffer });
+    try {
+      const result = await parser.getText();
+      return result.text;
+    } finally {
+      await parser.destroy();
+    }
+  }
 
   @Get('history')
   getHistory() {
@@ -177,9 +191,7 @@ export class SessionsController {
   }
 
   @Post(':id/upload-thumbnail')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: multer.memoryStorage(),
-  }))
+  @UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage() }))
   async uploadThumbnail(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
     if (!file) throw new NotFoundException('No se envió miniatura');
 
@@ -252,30 +264,36 @@ export class SessionsController {
       const session = await this.sessionsService.getSessionById(Number(id));
 
       if (!session || !session.transcriptionUrl) {
-        throw new HttpException('No hay transcripción disponible para esta sesión', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'No hay transcripción disponible para esta sesión',
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       const objectName = session.transcriptionUrl.replace(/^\/api\/streams\//, '');
 
-      let textUrl: string;
+      let fileUrl: string;
       try {
-        textUrl = await this.storageService.getSignedReadUrl(objectName);
-      } catch (e) {
-        textUrl = `http://127.0.0.1:3000${session.transcriptionUrl}`;
+        fileUrl = await this.storageService.getSignedReadUrl(objectName);
+      } catch {
+        // Fallback para desarrollo local
+        fileUrl = `http://127.0.0.1:3000${session.transcriptionUrl}`;
       }
 
-      const responseTexto = await fetch(textUrl);
-      if (!responseTexto.ok) throw new Error(`Fallo al descargar transcripción. Status: ${responseTexto.status}`);
-      
-      const transcripcionTexto = await responseTexto.text();
+      const fileResponse = await fetch(fileUrl);
+      if (!fileResponse.ok) {
+        throw new Error(`Fallo al descargar transcripción. Status: ${fileResponse.status}`);
+      }
+
+      const buffer = Buffer.from(await fileResponse.arrayBuffer());
+      const transcripcionTexto = await this.extractTranscriptionText(objectName, buffer);
 
       const dataIA = await this.callAiService<{ respuesta: string }>('/chat', {
-        pregunta: pregunta,
-        contexto_transcripcion: transcripcionTexto
+        pregunta,
+        contexto_transcripcion: transcripcionTexto,
       });
 
       return { respuesta: dataIA.respuesta };
-
     } catch (error) {
       console.error('Error en chat:', error);
       if (error instanceof HttpException) throw error;
