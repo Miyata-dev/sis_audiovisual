@@ -1,6 +1,8 @@
 FROM ollama/ollama:0.3.12
 
 ENV OLLAMA_HOST=0.0.0.0:8080
+ENV OLLAMA_NUM_PARALLEL=1
+ENV OLLAMA_MAX_LOADED_MODELS=1
 
 # Descarga el modelo durante el build: espera a que el servidor responda
 # y hace fallar el build si el pull falla
