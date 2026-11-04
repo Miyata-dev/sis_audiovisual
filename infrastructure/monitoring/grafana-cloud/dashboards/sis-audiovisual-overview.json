@@ -1,25 +1,4 @@
 {
-  "__elements": {},
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "11.6.0"
-    },
-    {
-      "type": "datasource",
-      "id": "stackdriver",
-      "name": "Google Cloud Monitoring",
-      "version": "11.6.0-pre"
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -42,6 +21,572 @@
   "id": null,
   "links": [],
   "panels": [
+    {
+      "datasource": {
+        "type": "stackdriver",
+        "uid": "gcm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "dark-red",
+                  "index": 3,
+                  "text": "INACTIVO (OFFLINE)"
+                },
+                "1": {
+                  "color": "dark-green",
+                  "index": 0,
+                  "text": "ACTIVO (ONLINE) · 1 instancia"
+                },
+                "2": {
+                  "color": "dark-green",
+                  "index": 1,
+                  "text": "ACTIVO (ONLINE) · 2 instancias"
+                },
+                "3": {
+                  "color": "dark-green",
+                  "index": 2,
+                  "text": "ACTIVO (ONLINE) · 3 instancias"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "INACTIVO (OFFLINE)",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 28
+        },
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "aliasBy": "{{resource.label.service_name}}",
+          "queryType": "timeSeriesList",
+          "refId": "A",
+          "timeSeriesList": {
+            "alignmentPeriod": "cloud-monitoring-auto",
+            "crossSeriesReducer": "REDUCE_SUM",
+            "filters": [
+              "resource.label.service_name",
+              "=",
+              "frontend",
+              "AND",
+              "metric.type",
+              "=",
+              "run.googleapis.com/container/instance_count"
+            ],
+            "groupBys": [
+              "resource.label.service_name"
+            ],
+            "perSeriesAligner": "ALIGN_MAX",
+            "preprocessor": "none",
+            "projectName": "project-267f0f4e-6917-4bab-9eb",
+            "view": "FULL"
+          },
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          }
+        }
+      ],
+      "title": "Frontend (React)",
+      "type": "stat",
+      "timeFrom": "10m"
+    },
+    {
+      "datasource": {
+        "type": "stackdriver",
+        "uid": "gcm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "dark-red",
+                  "index": 3,
+                  "text": "INACTIVO (OFFLINE)"
+                },
+                "1": {
+                  "color": "dark-green",
+                  "index": 0,
+                  "text": "ACTIVO (ONLINE) · 1 instancia"
+                },
+                "2": {
+                  "color": "dark-green",
+                  "index": 1,
+                  "text": "ACTIVO (ONLINE) · 2 instancias"
+                },
+                "3": {
+                  "color": "dark-green",
+                  "index": 2,
+                  "text": "ACTIVO (ONLINE) · 3 instancias"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "INACTIVO (OFFLINE)",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 28
+        },
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "aliasBy": "{{resource.label.service_name}}",
+          "queryType": "timeSeriesList",
+          "refId": "A",
+          "timeSeriesList": {
+            "alignmentPeriod": "cloud-monitoring-auto",
+            "crossSeriesReducer": "REDUCE_SUM",
+            "filters": [
+              "resource.label.service_name",
+              "=",
+              "backend",
+              "AND",
+              "metric.type",
+              "=",
+              "run.googleapis.com/container/instance_count"
+            ],
+            "groupBys": [
+              "resource.label.service_name"
+            ],
+            "perSeriesAligner": "ALIGN_MAX",
+            "preprocessor": "none",
+            "projectName": "project-267f0f4e-6917-4bab-9eb",
+            "view": "FULL"
+          },
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          }
+        }
+      ],
+      "title": "Backend (NodeJS)",
+      "type": "stat",
+      "timeFrom": "10m"
+    },
+    {
+      "datasource": {
+        "type": "stackdriver",
+        "uid": "gcm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "dark-red",
+                  "index": 3,
+                  "text": "INACTIVO (OFFLINE)"
+                },
+                "1": {
+                  "color": "dark-green",
+                  "index": 0,
+                  "text": "ACTIVO (ONLINE) · 1 instancia"
+                },
+                "2": {
+                  "color": "dark-green",
+                  "index": 1,
+                  "text": "ACTIVO (ONLINE) · 2 instancias"
+                },
+                "3": {
+                  "color": "dark-green",
+                  "index": 2,
+                  "text": "ACTIVO (ONLINE) · 3 instancias"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "INACTIVO (OFFLINE)",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 15,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 28
+        },
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "aliasBy": "{{resource.label.service_name}}",
+          "queryType": "timeSeriesList",
+          "refId": "A",
+          "timeSeriesList": {
+            "alignmentPeriod": "cloud-monitoring-auto",
+            "crossSeriesReducer": "REDUCE_SUM",
+            "filters": [
+              "resource.label.service_name",
+              "=",
+              "ollama",
+              "AND",
+              "metric.type",
+              "=",
+              "run.googleapis.com/container/instance_count"
+            ],
+            "groupBys": [
+              "resource.label.service_name"
+            ],
+            "perSeriesAligner": "ALIGN_MAX",
+            "preprocessor": "none",
+            "projectName": "project-267f0f4e-6917-4bab-9eb",
+            "view": "FULL"
+          },
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          }
+        }
+      ],
+      "title": "Ollama",
+      "type": "stat",
+      "timeFrom": "10m"
+    },
+    {
+      "datasource": {
+        "type": "stackdriver",
+        "uid": "gcm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "dark-red",
+                  "index": 1,
+                  "text": "INACTIVO (OFFLINE)"
+                },
+                "1": {
+                  "color": "dark-green",
+                  "index": 0,
+                  "text": "ACTIVO (ONLINE)"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "INACTIVO (OFFLINE)",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 4,
+        "y": 3
+      },
+      "id": 16,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 28
+        },
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "aliasBy": "PostgreSQL",
+          "queryType": "timeSeriesList",
+          "refId": "A",
+          "timeSeriesList": {
+            "alignmentPeriod": "cloud-monitoring-auto",
+            "crossSeriesReducer": "REDUCE_MAX",
+            "filters": [
+              "metric.type",
+              "=",
+              "cloudsql.googleapis.com/database/up"
+            ],
+            "groupBys": [
+              "resource.label.database_id"
+            ],
+            "perSeriesAligner": "ALIGN_MAX",
+            "preprocessor": "none",
+            "projectName": "project-267f0f4e-6917-4bab-9eb",
+            "view": "FULL"
+          },
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          }
+        }
+      ],
+      "title": "PostgreSQL (Cloud SQL)",
+      "type": "stat",
+      "timeFrom": "10m"
+    },
+    {
+      "datasource": {
+        "type": "stackdriver",
+        "uid": "gcm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "dark-red",
+                  "index": 3,
+                  "text": "INACTIVO (OFFLINE)"
+                },
+                "1": {
+                  "color": "dark-green",
+                  "index": 0,
+                  "text": "ACTIVO (ONLINE) · 1 instancia"
+                },
+                "2": {
+                  "color": "dark-green",
+                  "index": 1,
+                  "text": "ACTIVO (ONLINE) · 2 instancias"
+                },
+                "3": {
+                  "color": "dark-green",
+                  "index": 2,
+                  "text": "ACTIVO (ONLINE) · 3 instancias"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "noValue": "INACTIVO (OFFLINE)",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 12,
+        "y": 3
+      },
+      "id": 17,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {
+          "valueSize": 28
+        },
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "aliasBy": "{{resource.label.service_name}}",
+          "queryType": "timeSeriesList",
+          "refId": "A",
+          "timeSeriesList": {
+            "alignmentPeriod": "cloud-monitoring-auto",
+            "crossSeriesReducer": "REDUCE_SUM",
+            "filters": [
+              "resource.label.service_name",
+              "=",
+              "ia-service",
+              "AND",
+              "metric.type",
+              "=",
+              "run.googleapis.com/container/instance_count"
+            ],
+            "groupBys": [
+              "resource.label.service_name"
+            ],
+            "perSeriesAligner": "ALIGN_MAX",
+            "preprocessor": "none",
+            "projectName": "project-267f0f4e-6917-4bab-9eb",
+            "view": "FULL"
+          },
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          }
+        }
+      ],
+      "title": "Ia-service-transcripcion",
+      "type": "stat",
+      "timeFrom": "10m"
+    },
     {
       "datasource": {
         "type": "stackdriver",
@@ -106,7 +651,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 0
+        "y": 6
       },
       "id": 1,
       "options": {
@@ -262,10 +807,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 12,
-        "y": 0
+        "y": 6
       },
       "id": 7,
       "options": {
@@ -367,40 +912,126 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "percentunit"
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "frontend"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "aliasBy": "{{resource.label.service_name}}",
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          },
+          "queryType": "timeSeriesList",
+          "refId": "A",
+          "timeSeriesList": {
+            "alignmentPeriod": "cloud-monitoring-auto",
+            "crossSeriesReducer": "REDUCE_PERCENTILE_95",
+            "filters": [
+              "metric.type",
+              "=",
+              "run.googleapis.com/container/memory/utilizations"
+            ],
+            "groupBys": [
+              "resource.label.service_name"
+            ],
+            "perSeriesAligner": "ALIGN_DELTA",
+            "preprocessor": "none",
+            "projectName": "project-267f0f4e-6917-4bab-9eb",
+            "view": "FULL"
+          }
+        }
+      ],
+      "title": "Memoria por servicio",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "stackdriver",
+        "uid": "gcm"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "properties": [
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
               {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           }
-        ]
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 14
       },
       "id": 6,
       "options": {
@@ -507,262 +1138,15 @@
               }
             ]
           },
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "11.6.0",
-      "targets": [
-        {
-          "aliasBy": "{{resource.label.service_name}}",
-          "datasource": {
-            "type": "stackdriver",
-            "uid": "gcm"
-          },
-          "queryType": "timeSeriesList",
-          "refId": "A",
-          "timeSeriesList": {
-            "alignmentPeriod": "cloud-monitoring-auto",
-            "crossSeriesReducer": "REDUCE_PERCENTILE_95",
-            "filters": [
-              "metric.type",
-              "=",
-              "run.googleapis.com/container/memory/utilizations"
-            ],
-            "groupBys": [
-              "resource.label.service_name"
-            ],
-            "perSeriesAligner": "ALIGN_DELTA",
-            "preprocessor": "none",
-            "projectName": "project-267f0f4e-6917-4bab-9eb",
-            "view": "FULL"
-          }
-        }
-      ],
-      "title": "Memoria por servicio",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "stackdriver",
-        "uid": "gcm"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green"
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "backend"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "id": 4,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "11.6.0",
-      "targets": [
-        {
-          "aliasBy": "{{resource.label.service_name}}",
-          "datasource": {
-            "type": "stackdriver",
-            "uid": "gcm"
-          },
-          "queryType": "timeSeriesList",
-          "refId": "A",
-          "timeSeriesList": {
-            "alignmentPeriod": "cloud-monitoring-auto",
-            "crossSeriesReducer": "REDUCE_PERCENTILE_95",
-            "filters": [
-              "metric.type",
-              "=",
-              "run.googleapis.com/container/cpu/utilizations"
-            ],
-            "groupBys": [
-              "resource.label.service_name"
-            ],
-            "perSeriesAligner": "ALIGN_DELTA",
-            "preprocessor": "none",
-            "projectName": "project-267f0f4e-6917-4bab-9eb",
-            "view": "FULL"
-          }
-        }
-      ],
-      "title": "CPU por servicio",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "stackdriver",
-        "uid": "gcm"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green"
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
           "unit": "ms"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 7,
+        "w": 11,
         "x": 12,
-        "y": 16
+        "y": 21
       },
       "id": 3,
       "options": {
@@ -865,7 +1249,7 @@
               }
             ]
           },
-          "unit": "reqps"
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -873,9 +1257,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 22
       },
-      "id": 2,
+      "id": 4,
       "options": {
         "legend": {
           "calcs": [],
@@ -901,28 +1285,224 @@
           "refId": "A",
           "timeSeriesList": {
             "alignmentPeriod": "cloud-monitoring-auto",
-            "crossSeriesReducer": "REDUCE_SUM",
+            "crossSeriesReducer": "REDUCE_PERCENTILE_95",
             "filters": [
-              "metric.label.response_code_class",
-              "=",
-              "5xx",
-              "AND",
               "metric.type",
               "=",
-              "run.googleapis.com/request_count"
+              "run.googleapis.com/container/cpu/utilizations"
             ],
             "groupBys": [
               "resource.label.service_name"
             ],
-            "perSeriesAligner": "ALIGN_NONE",
-            "preprocessor": "rate",
+            "perSeriesAligner": "ALIGN_DELTA",
+            "preprocessor": "none",
             "projectName": "project-267f0f4e-6917-4bab-9eb",
             "view": "FULL"
           }
         }
       ],
-      "title": "Errores 5xx",
+      "title": "CPU por servicio",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "googlecloud-logging-datasource",
+        "uid": "gcl"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 21,
+        "x": 0,
+        "y": 30
+      },
+      "id": 8,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "bucketId": "global/buckets/_Default",
+          "datasource": {
+            "type": "googlecloud-logging-datasource",
+            "uid": "gcl"
+          },
+          "projectId": "project-267f0f4e-6917-4bab-9eb",
+          "queryText": "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"backend\" AND NOT log_id(\"run.googleapis.com/requests\")",
+          "refId": "A",
+          "viewId": "_AllLogs"
+        }
+      ],
+      "title": "Logs backend (NodeJS)",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "googlecloud-logging-datasource",
+        "uid": "gcl"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 21,
+        "x": 0,
+        "y": 37
+      },
+      "id": 10,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "bucketId": "global/buckets/_Default",
+          "datasource": {
+            "type": "googlecloud-logging-datasource",
+            "uid": "gcl"
+          },
+          "projectId": "project-267f0f4e-6917-4bab-9eb",
+          "queryText": "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"frontend\" AND NOT log_id(\"run.googleapis.com/requests\")",
+          "refId": "A",
+          "viewId": "_AllLogs"
+        }
+      ],
+      "title": "Logs frontend (React)",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "googlecloud-logging-datasource",
+        "uid": "gcl"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 21,
+        "x": 0,
+        "y": 44
+      },
+      "id": 12,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "bucketId": "global/buckets/_Default",
+          "datasource": {
+            "type": "googlecloud-logging-datasource",
+            "uid": "gcl"
+          },
+          "projectId": "project-267f0f4e-6917-4bab-9eb",
+          "queryText": "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"ollama\" AND NOT log_id(\"run.googleapis.com/requests\")",
+          "refId": "A",
+          "viewId": "_AllLogs"
+        }
+      ],
+      "title": "Logs ollama",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "googlecloud-logging-datasource",
+        "uid": "gcl"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 21,
+        "x": 0,
+        "y": 49
+      },
+      "id": 11,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "bucketId": "global/buckets/_Default",
+          "datasource": {
+            "type": "googlecloud-logging-datasource",
+            "uid": "gcl"
+          },
+          "projectId": "project-267f0f4e-6917-4bab-9eb",
+          "queryText": "resource.type=\"cloudsql_database\"",
+          "refId": "A",
+          "viewId": "_AllLogs"
+        }
+      ],
+      "title": "Logs PostgreSQL (Cloud SQL)",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "googlecloud-logging-datasource",
+        "uid": "gcl"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 13,
+        "x": 0,
+        "y": 56
+      },
+      "id": 9,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "bucketId": "global/buckets/_Default",
+          "datasource": {
+            "type": "googlecloud-logging-datasource",
+            "uid": "gcl"
+          },
+          "projectId": "project-267f0f4e-6917-4bab-9eb",
+          "queryText": "resource.type=\"cloud_run_revision\" AND severity>=ERROR",
+          "refId": "A",
+          "viewId": "_AllLogs"
+        }
+      ],
+      "title": "Logs de errores",
+      "type": "logs"
     }
   ],
   "schemaVersion": 41,
@@ -931,13 +1511,14 @@
     "list": []
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "New dashboard",
-  "uid": "ag30xdx33tbswd",
-  "version": 5,
-  "weekStart": ""
+  "title": "Sistema Audiovisual - Estado general",
+  "uid": "sis-audiovisual-overview",
+  "version": 1,
+  "weekStart": "",
+  "refresh": "30s"
 }
