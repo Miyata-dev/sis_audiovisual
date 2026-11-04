@@ -93,27 +93,26 @@ async def ollama_chat(messages, options=None, timeout=600):
         return response.json()["message"]["content"].strip()
  
 async def es_sobre_la_sesion(pregunta: str, contexto: str) -> bool:
-    """Filtro rapido: decide si la pregunta tiene relacion con la sesion.
-    Si falla, deja pasar la pregunta (el prompt principal tambien restringe)."""
+    """Filtro rapido: decide si la peticion tiene relacion con la sesion."""
     muestra = contexto[:1500]
     messages = [
         {
             "role": "system",
             "content": (
                 "Eres un clasificador. Recibes el inicio de la transcripción de un video "
-                "y una pregunta de un usuario. Responde SOLO con 'SI' o 'NO'.\n"
-                "Responde SI si la pregunta trata sobre el video: su tema, resumen, "
-                "participantes, lo que se dijo, decisiones, votaciones, fechas o datos de la sesión.\n"
-                "Responde NO si es una pregunta de cultura general, matemáticas, programación, "
-                "opiniones, chistes, o cualquier tema que no tenga relación con el contenido del video."
+                "y un mensaje o petición de un usuario. Responde SOLO con 'SI' o 'NO'.\n"
+                "Responde SI si el mensaje trata sobre el video, pide un resumen, "
+                "participantes, decisiones, o busca información de la sesión.\n"
+                "Responde NO si el mensaje es de cultura general, matemáticas, programación, "
+                "o cualquier tema que no tenga relación con el contenido del video."
             ),
         },
         {
             "role": "user",
             "content": (
                 f"Inicio de la transcripción:\n{muestra}\n\n"
-                f"Pregunta del usuario: {pregunta}\n\n"
-                "¿La pregunta trata sobre el video? Responde solo SI o NO."
+                f"Mensaje del usuario: {pregunta}\n\n"
+                "¿El mensaje trata sobre el video o pide información del mismo? Responde solo SI o NO."
             ),
         },
     ]
