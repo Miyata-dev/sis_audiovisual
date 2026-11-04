@@ -1,10 +1,12 @@
 FROM grafana/grafana:11.6.0
 
 LABEL maintainer="equipo-sis-audiovisual" \
-      description="Grafana conectado a Google Cloud Monitoring" \
-      version="1.0"
+      description="Grafana con Cloud Monitoring y Cloud Logging" \
+      version="1.1"
 
 USER 472
+
+RUN grafana cli plugins install googlecloud-logging-datasource
 
 ENV GF_SERVER_HTTP_PORT=3000 \
     GF_USERS_ALLOW_SIGN_UP=false \

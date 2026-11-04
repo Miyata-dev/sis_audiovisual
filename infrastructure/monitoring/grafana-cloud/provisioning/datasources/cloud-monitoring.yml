@@ -1,11 +1,10 @@
 apiVersion: 1
 
 datasources:
-  - name: Google Cloud Monitoring
-    uid: gcm
-    type: stackdriver
+  - name: Google Cloud Logging
+    uid: gcl
+    type: googlecloud-logging-datasource
     access: proxy
-    isDefault: true
     jsonData:
       authenticationType: gce
       defaultProject: project-267f0f4e-6917-4bab-9eb
