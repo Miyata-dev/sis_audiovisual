@@ -1,6 +1,8 @@
 import os
+from pyexpat.errors import messages
 import tempfile
 import requests
+import httpx
 from pydantic import BaseModel
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from faster_whisper import WhisperModel
@@ -78,18 +80,19 @@ class ChatRequest(BaseModel):
     pregunta: str
     contexto_transcripcion: str
  
-def ollama_chat(messages, options=None, timeout=600):
+async def ollama_chat(messages, options=None, timeout=600):
     payload = {
         "model": OLLAMA_MODEL,
         "messages": messages,
         "stream": False,
         "options": options or {},
     }
-    response = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=timeout)
-    response.raise_for_status()
-    return response.json()["message"]["content"].strip()
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
+        response.raise_for_status()
+        return response.json()["message"]["content"].strip()
  
-def es_sobre_la_sesion(pregunta: str, contexto: str) -> bool:
+async def es_sobre_la_sesion(pregunta: str, contexto: str) -> bool:
     """Filtro rapido: decide si la pregunta tiene relacion con la sesion.
     Si falla, deja pasar la pregunta (el prompt principal tambien restringe)."""
     muestra = contexto[:1500]
@@ -115,7 +118,7 @@ def es_sobre_la_sesion(pregunta: str, contexto: str) -> bool:
         },
     ]
     try:
-        respuesta = ollama_chat(messages, {"temperature": 0, "num_predict": 3, "num_ctx": 8192}, timeout=120)
+        respuesta = await ollama_chat(messages, {"temperature": 0, "num_predict": 3, "num_ctx": 8192}, timeout=120)
         return respuesta.upper().replace("Í", "I").startswith("SI")
     except Exception as e:
         print(f"Clasificador fallo, se continua igual: {e}")
@@ -131,12 +134,10 @@ REGLAS:
 5. Responde siempre en español, de forma breve y clara. No inventes información."""
  
 @app.post("/chat")
-def chat_con_transcripcion(request: ChatRequest):
-    # Paso 1: filtro de relevancia (barato)
-    if not es_sobre_la_sesion(request.pregunta, request.contexto_transcripcion):
+async def chat_con_transcripcion(request: ChatRequest):
+    if not await es_sobre_la_sesion(request.pregunta, request.contexto_transcripcion):
         return {"pregunta": request.pregunta, "respuesta": REFUSAL}
  
-    # Paso 2: respuesta basada solo en la transcripcion
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {
@@ -151,7 +152,7 @@ def chat_con_transcripcion(request: ChatRequest):
     ]
  
     try:
-        respuesta_ia = ollama_chat(messages, {"temperature": 0, "num_ctx": 8192})
+        respuesta_ia = await ollama_chat(messages, {"temperature": 0, "num_ctx": 8192})
         return {"pregunta": request.pregunta, "respuesta": respuesta_ia}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el LLM: {str(e)}")
