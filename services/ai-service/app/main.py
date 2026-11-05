@@ -94,30 +94,37 @@ async def ollama_chat(messages, options=None, timeout=600):
  
 async def es_sobre_la_sesion(pregunta: str, contexto: str) -> bool:
     """Filtro rapido: decide si la peticion tiene relacion con la sesion."""
-    muestra = contexto[:1500]
+    
+    pregunta_limpia = pregunta.lower().replace("ó", "o").replace("í", "i")
+    palabras_clave = ["sesion", "session", "video", "resumen", "acta", "hablaron", "trataron", "reunion"]
+    
+    if any(palabra in pregunta_limpia for palabra in palabras_clave):
+        return True
+    
+    muestra = contexto[:800] 
+    
     messages = [
         {
             "role": "system",
             "content": (
-                "Eres un clasificador. Recibes el inicio de la transcripción de un video "
-                "y un mensaje o petición de un usuario. Responde SOLO con 'SI' o 'NO'.\n"
-                "Responde SI si el mensaje trata sobre el video, pide un resumen, "
-                "participantes, decisiones, o busca información de la sesión.\n"
-                "Responde NO si el mensaje es de cultura general, matemáticas, programación, "
-                "o cualquier tema que no tenga relación con el contenido del video."
+                "Eres un filtro estricto. Responde SOLO con 'SI' o 'NO'.\n"
+                "Responde SI si el mensaje del usuario busca extraer información de un texto, "
+                "pide analizar datos, o tiene relación con una reunión de trabajo.\n"
+                "Responde NO solo si es una pregunta de cultura general, matemáticas, "
+                "chistes o código de programación."
             ),
         },
         {
             "role": "user",
             "content": (
-                f"Inicio de la transcripción:\n{muestra}\n\n"
+                f"Texto de referencia:\n{muestra}\n\n"
                 f"Mensaje del usuario: {pregunta}\n\n"
-                "¿El mensaje trata sobre el video o pide información del mismo? Responde solo SI o NO."
+                "¿El mensaje pide información válida? Responde solo SI o NO."
             ),
         },
     ]
     try:
-        respuesta = await ollama_chat(messages, {"temperature": 0, "num_predict": 3, "num_ctx": 8192}, timeout=120)
+        respuesta = await ollama_chat(messages, {"temperature": 0, "num_predict": 3, "num_ctx": 4096}, timeout=120)
         return respuesta.upper().replace("Í", "I").startswith("SI")
     except Exception as e:
         print(f"Clasificador fallo, se continua igual: {e}")
