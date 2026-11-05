@@ -1,8 +1,11 @@
 import os
-from pyexpat.errors import messages
+import time
+import asyncio
 import tempfile
 import requests
 import httpx
+import google.auth.transport.requests
+import google.oauth2.id_token
 from pydantic import BaseModel
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from faster_whisper import WhisperModel
@@ -12,7 +15,27 @@ app = FastAPI(title="AI Transcription Service")
 model_size = os.getenv("WHISPER_MODEL", "small")
 model = WhisperModel(model_size, device="cpu", compute_type="int8")
  
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434")
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama:11434").rstrip("/")
+
+# En Cloud Run ollama exige autenticacion, se envia un token de identidad.
+# En local (http://) no se usa token.
+_token_cache = {"value": None, "exp": 0.0}
+
+
+def _fetch_ollama_token() -> str:
+    req = google.auth.transport.requests.Request()
+    return google.oauth2.id_token.fetch_id_token(req, OLLAMA_URL)
+
+
+async def ollama_headers() -> dict:
+    if not OLLAMA_URL.startswith("https://"):
+        return {}
+    # El token dura 1 hora, se reutiliza 50 minutos
+    if not _token_cache["value"] or time.time() > _token_cache["exp"]:
+        _token_cache["value"] = await asyncio.to_thread(_fetch_ollama_token)
+        _token_cache["exp"] = time.time() + 50 * 60
+    return {"Authorization": f"Bearer {_token_cache['value']}"}
+
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
  
 REFUSAL = "Lo siento, solo puedo responder preguntas relacionadas con el contenido de esta sesión."
@@ -88,7 +111,9 @@ async def ollama_chat(messages, options=None, timeout=600):
         "options": options or {},
     }
     async with httpx.AsyncClient(timeout=timeout) as client:
-        response = await client.post(f"{OLLAMA_URL}/api/chat", json=payload)
+        response = await client.post(
+            f"{OLLAMA_URL}/api/chat", json=payload, headers=await ollama_headers()
+        )
         response.raise_for_status()
         return response.json()["message"]["content"].strip()
  
