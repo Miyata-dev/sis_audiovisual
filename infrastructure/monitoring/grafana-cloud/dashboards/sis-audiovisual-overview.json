@@ -105,6 +105,10 @@
       "targets": [
         {
           "aliasBy": "{{resource.label.service_name}}",
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          },
           "queryType": "timeSeriesList",
           "refId": "A",
           "timeSeriesList": {
@@ -126,16 +130,11 @@
             "preprocessor": "none",
             "projectName": "project-267f0f4e-6917-4bab-9eb",
             "view": "FULL"
-          },
-          "datasource": {
-            "type": "stackdriver",
-            "uid": "gcm"
           }
         }
       ],
       "title": "Frontend (React)",
-      "type": "stat",
-      "timeFrom": "10m"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -221,6 +220,10 @@
       "targets": [
         {
           "aliasBy": "{{resource.label.service_name}}",
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          },
           "queryType": "timeSeriesList",
           "refId": "A",
           "timeSeriesList": {
@@ -242,16 +245,11 @@
             "preprocessor": "none",
             "projectName": "project-267f0f4e-6917-4bab-9eb",
             "view": "FULL"
-          },
-          "datasource": {
-            "type": "stackdriver",
-            "uid": "gcm"
           }
         }
       ],
       "title": "Backend (NodeJS)",
-      "type": "stat",
-      "timeFrom": "10m"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -337,6 +335,10 @@
       "targets": [
         {
           "aliasBy": "{{resource.label.service_name}}",
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          },
           "queryType": "timeSeriesList",
           "refId": "A",
           "timeSeriesList": {
@@ -358,16 +360,11 @@
             "preprocessor": "none",
             "projectName": "project-267f0f4e-6917-4bab-9eb",
             "view": "FULL"
-          },
-          "datasource": {
-            "type": "stackdriver",
-            "uid": "gcm"
           }
         }
       ],
       "title": "Ollama",
-      "type": "stat",
-      "timeFrom": "10m"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -443,6 +440,10 @@
       "targets": [
         {
           "aliasBy": "PostgreSQL",
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          },
           "queryType": "timeSeriesList",
           "refId": "A",
           "timeSeriesList": {
@@ -460,16 +461,11 @@
             "preprocessor": "none",
             "projectName": "project-267f0f4e-6917-4bab-9eb",
             "view": "FULL"
-          },
-          "datasource": {
-            "type": "stackdriver",
-            "uid": "gcm"
           }
         }
       ],
       "title": "PostgreSQL (Cloud SQL)",
-      "type": "stat",
-      "timeFrom": "10m"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -555,6 +551,10 @@
       "targets": [
         {
           "aliasBy": "{{resource.label.service_name}}",
+          "datasource": {
+            "type": "stackdriver",
+            "uid": "gcm"
+          },
           "queryType": "timeSeriesList",
           "refId": "A",
           "timeSeriesList": {
@@ -576,16 +576,11 @@
             "preprocessor": "none",
             "projectName": "project-267f0f4e-6917-4bab-9eb",
             "view": "FULL"
-          },
-          "datasource": {
-            "type": "stackdriver",
-            "uid": "gcm"
           }
         }
       ],
       "title": "Ia-service-transcripcion",
-      "type": "stat",
-      "timeFrom": "10m"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -1505,20 +1500,20 @@
       "type": "logs"
     }
   ],
+  "refresh": "30s",
   "schemaVersion": 41,
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Sistema Audiovisual - Estado general",
   "uid": "sis-audiovisual-overview",
-  "version": 1,
-  "weekStart": "",
-  "refresh": "30s"
+  "version": 6,
+  "weekStart": ""
 }

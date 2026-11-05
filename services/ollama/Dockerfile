@@ -1,5 +1,10 @@
 FROM ollama/ollama:0.3.12
 
+# Metadata  
+LABEL maintainer="equipo-sis-audiovisual" \
+      description="Servicio Ollama (llama3.2:3b) para IA del sistema" \
+      project="sis_audiovisual"
+
 ENV OLLAMA_HOST=0.0.0.0:8080
 ENV OLLAMA_NUM_PARALLEL=3
 ENV OLLAMA_MAX_LOADED_MODELS=1
@@ -14,3 +19,7 @@ RUN set -e; \
     kill $pid
 
 EXPOSE 8080
+
+# Healthcheck 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:8080/ || exit 1
